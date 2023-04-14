@@ -3616,6 +3616,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
             .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
             .setScope(Scope.WORKER)
             .build();
+  public static final PropertyKey WORKER_BLOCK_ANNOTATOR_COMPOSITE_RATIO =
+          doubleBuilder(Name.WORKER_BLOCK_ANNOTATOR_COMPOSITE_RATIO)
+                  .setDefaultValue(0)
+                  .setDescription("A factor to control the LRFU and Replica")
+                  .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+                  .setScope(Scope.WORKER)
+                  .build();
   public static final PropertyKey MAINTAIN_REPLICA_INFO =
           booleanBuilder(Name.MAINTAIN_REPLICA_INFO)
                   .setDefaultValue(false)
@@ -7339,6 +7346,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
             "alluxio.worker.block.annotator.replica.lru.ratio";
     public static final String WORKER_BLOCK_ANNOTATOR_REPLICA_REPLICA_RATIO =
             "alluxio.worker.block.annotator.replica.replica.ratio";
+    public static final String WORKER_BLOCK_ANNOTATOR_COMPOSITE_RATIO =
+            "alluxio.worker.block.annotator.composite.ratio";
     public static final String MAINTAIN_REPLICA_INFO =
             "alluxio.master.maintain.replica.info";
     public static final String WORKER_FUSE_ENABLED =

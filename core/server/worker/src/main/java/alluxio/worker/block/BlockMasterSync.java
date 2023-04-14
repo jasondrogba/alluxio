@@ -26,6 +26,7 @@ import alluxio.retry.RetryPolicy;
 import alluxio.wire.HeartBeatResponseMessage;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.block.annotator.ReplicaBasedAnnotator;
+import alluxio.worker.block.annotator.CompositeAnnotator;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -268,7 +269,8 @@ public final class BlockMasterSync implements HeartbeatExecutor {
       return;
     }
     String annotatorType = Configuration.getString(PropertyKey.WORKER_BLOCK_ANNOTATOR_CLASS);
-    if (annotatorType.equals(ReplicaBasedAnnotator.class.getName())) {
+//    if (annotatorType.equals(ReplicaBasedAnnotator.class.getName())) {
+    if (annotatorType.equals(CompositeAnnotator.class.getName())) {
       mBlockWorker.updateReplicaInfo(ReplicaInfo);
     }
   }
