@@ -18,6 +18,7 @@ import alluxio.worker.block.annotator.ReplicaBasedAnnotator;
 public class CompositeAnnotator implements BlockAnnotator<CompositeAnnotator.CompositeSortedField> {
     private static final Logger LOG = LoggerFactory.getLogger(CompositeAnnotator.class);
 
+    /** In the range of [0, 1]. Closer to 0, Composite closer to LRFU. Closer to 1, Composite closer to ReplicaLRU. */
     private static final double COMPOSITE_RATIO;
     /** In the range of [0, 1]. Closer to 0, LRFU closer to LFU. Closer to 1, LRFU closer to LRU. */
     private static final double STEP_FACTOR;
@@ -25,7 +26,7 @@ public class CompositeAnnotator implements BlockAnnotator<CompositeAnnotator.Com
     private static final double ATTENUATION_FACTOR;
     private static final double LRU_RATIO;
     private static final double REPLICA_RATIO;
-    private final AtomicLong mLRUClock = new AtomicLong();
+    private final AtomicLong mLRUClock ;
     static {
         COMPOSITE_RATIO = Configuration.getDouble(
                 PropertyKey.WORKER_BLOCK_ANNOTATOR_COMPOSITE_RATIO);
@@ -44,25 +45,36 @@ public class CompositeAnnotator implements BlockAnnotator<CompositeAnnotator.Com
      * */
     public CompositeAnnotator() {
         //创建一个annotator
+        mLRUClock = new AtomicLong(0);
     }
 
     @Override
-    public BlockSortedField updateSortedField(long blockId, CompositeAnnotator.CompositeSortedField oldValue) {
-        return getNewSortedField(blockId, oldValue, mLRUClock.incrementAndGet());
+    public BlockSortedField updateSortedField(long blockId, CompositeSortedField oldValue) {
+        long clockValue = mLRUClock.incrementAndGet();
+        long replicaNum =  (oldValue != null) ? oldValue.mReplicaNum : 0;
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("ReplicaBased update for Block: {}. Clock: {}", blockId, clockValue);
+        }
+        return getNewSortedField(clockValue, replicaNum, oldValue);
     }
 
     @Override
     public BlockSortedField updateSortedFieldReplica(long blockId, CompositeSortedField oldValue, Long value) {
-        return getNewSortedField(blockId, oldValue, mLRUClock.incrementAndGet());
+        long clockValue = mLRUClock.incrementAndGet();
+        Long replicaNum  = (oldValue != null) ? oldValue.mReplicaNum : 0;
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("ReplicaBased update for Block: {}. Clock: {}", blockId, clockValue);
+        }
+        return getNewSortedField(clockValue, replicaNum + value, oldValue);
     }
 
     @Override
     public void updateSortedFields(List<Pair<Long, CompositeSortedField>> blockList) {
         // Grab the current logical clock, for updating the given entries under.
-        long clockValue = mLRUClock.get();
-        for (Pair<Long, CompositeAnnotator.CompositeSortedField> blockField : blockList) {
-            blockField.setSecond(getNewSortedField(
-                    blockField.getFirst(), blockField.getSecond(), clockValue));
+        long currentClock = mLRUClock.get();
+        for (Pair<Long, CompositeSortedField> blockField : blockList) {
+            long replicaNum =  (blockField.getSecond() != null) ? blockField.getSecond().mReplicaNum : 0;
+            blockField.setSecond(getNewSortedField(currentClock,replicaNum,blockField.getSecond()));
         }
     }
 
@@ -72,13 +84,13 @@ public class CompositeAnnotator implements BlockAnnotator<CompositeAnnotator.Com
         return true;
     }
 
-    private CompositeAnnotator.CompositeSortedField getNewSortedField(long blockId, CompositeAnnotator.CompositeSortedField oldValue, long clock) {
+    private CompositeSortedField getNewSortedField(long clockValue, long replicaNum, CompositeSortedField oldValue) {
         double crfValue = (oldValue != null) ? oldValue.mCrfValue : 1.0;
-        long replicaNum =  (oldValue != null) ? oldValue.mReplicaNum : 0;
-        long clockValue = mLRUClock.incrementAndGet();
-        if (oldValue != null && clock != oldValue.mClockValue) {
+//        long replicaNum =  (oldValue != null) ? oldValue.mReplicaNum : 0;
+//        long clockValue = mLRUClock.incrementAndGet();
+        if (oldValue != null && clockValue != oldValue.mClockValue) {
             //calculate LRFU value
-            double crfValueLRFU = oldValue.mCrfValue * calculateAccessWeight(clock - oldValue.mClockValue) + 1.0;
+            double crfValueLRFU = oldValue.mCrfValue * calculateAccessWeight(clockValue - oldValue.mClockValue) + 1.0;
             //calculate ReplicabasedLRU value
             double crfValueReplica = clockValue * LRU_RATIO - replicaNum * REPLICA_RATIO;;
             //composite LRFU value and ReplicabasedLRU value
@@ -86,11 +98,7 @@ public class CompositeAnnotator implements BlockAnnotator<CompositeAnnotator.Com
 
         }
 
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Composite update for Block: {}. Clock:{}, CRF: {}", blockId, clock, crfValue);
-        }
-
-        return new CompositeAnnotator.CompositeSortedField(clock, crfValue,replicaNum);
+        return new CompositeAnnotator.CompositeSortedField(clockValue, replicaNum, crfValue);
     }
 
     private double calculateAccessWeight(long logicTimeInterval) {
@@ -100,11 +108,11 @@ public class CompositeAnnotator implements BlockAnnotator<CompositeAnnotator.Com
     protected class CompositeSortedField implements BlockSortedField {
         private final long mClockValue;
         private final double mCrfValue;
-        private final Long mReplicaNum;
+        private final long mReplicaNum;
 
 
 
-        private CompositeSortedField(long clockValue, double crfValue, long replicaNum) {
+        private CompositeSortedField(long clockValue, long replicaNum, double crfValue) {
             mClockValue = clockValue;
             mCrfValue = crfValue;
             mReplicaNum = replicaNum;

@@ -3740,6 +3740,9 @@ public class DefaultFileSystemMaster extends CoreMaster
           newValue);
       LOG.info("The interval of {} updated to {}",
           HeartbeatContext.MASTER_REPLICATION_CHECK, newValue);
+      long newRatio = Configuration.getDouble(
+              PropertyKey.WORKER_BLOCK_ANNOTATOR_COMPOSITE_RATIO);
+
     }
   }
 

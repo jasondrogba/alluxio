@@ -3619,7 +3619,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey WORKER_BLOCK_ANNOTATOR_COMPOSITE_RATIO =
           doubleBuilder(Name.WORKER_BLOCK_ANNOTATOR_COMPOSITE_RATIO)
                   .setDefaultValue(0)
-                  .setDescription("A factor to control the LRFU and Replica")
+                  .setDescription("A factor to control the LRFU and Replica, range from 0 to 1")
                   .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
                   .setScope(Scope.WORKER)
                   .build();
