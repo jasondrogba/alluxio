@@ -3,6 +3,7 @@ package alluxio.worker.block.annotator;
 import alluxio.collections.Pair;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.conf.Reconfigurable;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
@@ -15,11 +16,11 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import  alluxio.worker.block.annotator.LRFUAnnotator;
 import alluxio.worker.block.annotator.ReplicaBasedAnnotator;
-public class CompositeAnnotator implements BlockAnnotator<CompositeAnnotator.CompositeSortedField> {
+public class CompositeAnnotator implements BlockAnnotator<CompositeAnnotator.CompositeSortedField>, Reconfigurable {
     private static final Logger LOG = LoggerFactory.getLogger(CompositeAnnotator.class);
 
     /** In the range of [0, 1]. Closer to 0, Composite closer to LRFU. Closer to 1, Composite closer to ReplicaLRU. */
-    private static final double COMPOSITE_RATIO;
+    private static  double COMPOSITE_RATIO;
     /** In the range of [0, 1]. Closer to 0, LRFU closer to LFU. Closer to 1, LRFU closer to LRU. */
     private static final double STEP_FACTOR;
     /** The attenuation factor is in the range of [2, INF]. */
@@ -78,10 +79,28 @@ public class CompositeAnnotator implements BlockAnnotator<CompositeAnnotator.Com
         }
     }
 
+    @Override
+    public void update(){
+        //update COMPOSITE_RATIO
+        double newRatio = Configuration.getDouble(
+                PropertyKey.WORKER_BLOCK_ANNOTATOR_COMPOSITE_RATIO);
+        COMPOSITE_RATIO = newRatio;
+        LOG.info("The Ratio of {} updated to {}",
+                PropertyKey.WORKER_BLOCK_ANNOTATOR_CLASS,PropertyKey.WORKER_BLOCK_ANNOTATOR_COMPOSITE_RATIO);
+    }
+
 
     @Override
     public boolean isOnlineSorter() {
         return true;
+    }
+
+    public static void setCompositeRatio(double compositeRatio){
+        COMPOSITE_RATIO = compositeRatio;
+    }
+
+    public double getCompositeRatio(){
+        return COMPOSITE_RATIO;
     }
 
     private CompositeSortedField getNewSortedField(long clockValue, long replicaNum, CompositeSortedField oldValue) {
