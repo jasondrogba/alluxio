@@ -192,4 +192,9 @@ public class NoopBlockWorker implements BlockWorker {
 
   @Override
   public void updateReplicaInfo(Map<Long, Long> ReplicaInfo) {}
+
+  @Override
+  public void updateCompositeRatio(double compositeRatio) {
+
+  }
 }

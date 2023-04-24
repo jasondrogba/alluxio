@@ -27,9 +27,9 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class HeartBeatResponseMessage implements Serializable {
 
   private static final long serialVersionUID = -8936215337909224255L;
-  Command mCommand = null;
-  Map<Long, Long> mReplicaInfo = new HashMap<>();
-
+  private Command mCommand = null;
+  private Map<Long, Long> mReplicaInfo = new HashMap<>();
+  private double mCompositeRatio ;
   /**
    * Creates a new instance of {@link HeartBeatResponseMessage}.
    */
@@ -50,6 +50,10 @@ public final class HeartBeatResponseMessage implements Serializable {
     return mReplicaInfo;
   }
 
+    /**
+     * @return the composite ratio of the worker
+     */
+    public double getCompositeRatio() { return mCompositeRatio;}
   /**
    * @param command
    * @return Set the command for heartbeat Response
@@ -68,12 +72,21 @@ public final class HeartBeatResponseMessage implements Serializable {
     return this;
   }
 
+    /**
+     * @param compositeRatio
+     * @return set the composite ratio of the worker
+     */
+    public HeartBeatResponseMessage setCompositeRatio(double compositeRatio) {
+      mCompositeRatio = compositeRatio;
+      return this;
+    }
+
   /**
    * @return proto representation of the heartbeat information from master to worker
    */
   protected alluxio.grpc.BlockHeartbeatPResponse toProto() {
     return alluxio.grpc.BlockHeartbeatPResponse.newBuilder().setCommand(mCommand)
-            .putAllReplicaInfo(mReplicaInfo).build();
+            .putAllReplicaInfo(mReplicaInfo).setCompositeRatio(mCompositeRatio).build();
   }
 
   @Override
@@ -85,11 +98,11 @@ public final class HeartBeatResponseMessage implements Serializable {
       return false;
     }
     HeartBeatResponseMessage that = (HeartBeatResponseMessage) o;
-    return mCommand == that.mCommand && Objects.equal(mReplicaInfo, that.mReplicaInfo);
+    return mCommand == that.mCommand && Objects.equal(mReplicaInfo, that.mReplicaInfo) && mCompositeRatio == that.mCompositeRatio;
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mCommand, mReplicaInfo);
+    return Objects.hashCode(mCommand, mReplicaInfo, mCompositeRatio);
   }
 }

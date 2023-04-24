@@ -3622,6 +3622,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
                   .setDescription("A factor to control the LRFU and Replica, range from 0 to 1")
                   .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
                   .setScope(Scope.WORKER)
+                  .setIsDynamic(true)
                   .build();
   public static final PropertyKey MAINTAIN_REPLICA_INFO =
           booleanBuilder(Name.MAINTAIN_REPLICA_INFO)

@@ -1284,6 +1284,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 
     Command workerCommand = null;
     Map<java.lang.Long, java.lang.Long> mworkerReplicaInfo = new HashMap<>();
+    double mworkerCompositeRatio = Configuration.getDouble(PropertyKey.WORKER_BLOCK_ANNOTATOR_COMPOSITE_RATIO);
+
     try (LockResource r = worker.lockWorkerMeta(
         EnumSet.of(WorkerMetaLockSection.USAGE, WorkerMetaLockSection.BLOCKS), false)) {
       worker.addLostStorage(lostStorage);
@@ -1314,7 +1316,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     // Should not reach here
     Preconditions.checkNotNull(workerCommand, "Worker heartbeat response command is null!");
     return new HeartBeatResponseMessage().setCommand(workerCommand)
-            .setReplicaInfo(mworkerReplicaInfo);
+            .setReplicaInfo(mworkerReplicaInfo).setCompositeRatio(mworkerCompositeRatio);
   }
 
   @Override

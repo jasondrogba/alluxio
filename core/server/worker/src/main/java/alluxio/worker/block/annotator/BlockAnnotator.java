@@ -28,6 +28,8 @@ import javax.annotation.concurrent.ThreadSafe;
 @PublicApi
 public interface BlockAnnotator<T extends BlockSortedField> {
 
+  void updateCompositeRatio(double compositeRatio);
+
   /**
    * Factory for {@link BlockAnnotator}.
    */

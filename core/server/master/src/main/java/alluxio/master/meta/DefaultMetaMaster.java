@@ -634,6 +634,12 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
           successCount++;
           LOG.info("Property {} has been updated to \"{}\" from \"{}\"",
               key.getName(), entry.getValue(), oldValue);
+
+          //TODO:if propertiesMap include Composite ratio, we
+          // should update the composite ratio in the master
+          if (key.equals(PropertyKey.WORKER_BLOCK_ANNOTATOR_COMPOSITE_RATIO)) {
+            LOG.info("Update composite ratio to {}", entry.getValue());
+          }
         } else {
           LOG.debug("Update a non-dynamic property {} is not allowed", key.getName());
           result.put(entry.getKey(), false);

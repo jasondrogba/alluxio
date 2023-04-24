@@ -394,6 +394,12 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   }
 
   @Override
+  public void updateCompositeRatio(double compositeRatio) {
+    mBlockStore.updateCompositeRatio(compositeRatio);
+  }
+
+
+  @Override
   public FileInfo getFileInfo(long fileId) throws IOException {
     return mFileSystemMasterClient.getFileInfo(fileId);
   }

@@ -235,4 +235,6 @@ public interface BlockWorker extends Worker, SessionCleanable {
    * @param ReplicaInfo
    */
   void updateReplicaInfo(Map<Long, Long> ReplicaInfo);
+
+    void updateCompositeRatio(double compositeRatio);
 }

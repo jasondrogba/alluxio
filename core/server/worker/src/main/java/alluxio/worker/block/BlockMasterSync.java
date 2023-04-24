@@ -25,6 +25,7 @@ import alluxio.retry.ExponentialTimeBoundedRetry;
 import alluxio.retry.RetryPolicy;
 import alluxio.wire.HeartBeatResponseMessage;
 import alluxio.wire.WorkerNetAddress;
+import alluxio.worker.block.annotator.BlockAnnotator;
 import alluxio.worker.block.annotator.ReplicaBasedAnnotator;
 import alluxio.worker.block.annotator.CompositeAnnotator;
 
@@ -66,7 +67,6 @@ public final class BlockMasterSync implements HeartbeatExecutor {
 
   /** The block worker responsible for interacting with Alluxio and UFS storage. */
   private final BlockWorker mBlockWorker;
-
   /** The worker ID for the worker. This may change if the master asks the worker to re-register. */
   private final AtomicReference<Long> mWorkerId;
 
@@ -187,6 +187,7 @@ public final class BlockMasterSync implements HeartbeatExecutor {
       cmdFromMaster = heartbeatReturn.getCommand();
       handleMasterCommand(heartbeatReturn.getCommand());
       handleMasterReplicaChange(heartbeatReturn.getReplicaInfo());
+      handleMasterCompositeRatioChange(heartbeatReturn.getCompositeRatio());
       mLastSuccessfulHeartbeatMs = System.currentTimeMillis();
     } catch (IOException | ConnectionFailedException e) {
       // An error occurred, log and ignore it or error if heartbeat timeout is reached
@@ -274,4 +275,16 @@ public final class BlockMasterSync implements HeartbeatExecutor {
       mBlockWorker.updateReplicaInfo(ReplicaInfo);
     }
   }
+
+  private void handleMasterCompositeRatioChange(double compositeRatio)
+    throws IOException, ConnectionFailedException {
+    if (compositeRatio < 0) {
+      return;
+    }
+    String annotatorType = Configuration.getString(PropertyKey.WORKER_BLOCK_ANNOTATOR_CLASS);
+    if (annotatorType.equals(CompositeAnnotator.class.getName())) {
+      mBlockWorker.updateCompositeRatio(compositeRatio);
+    }
+  }
+
 }

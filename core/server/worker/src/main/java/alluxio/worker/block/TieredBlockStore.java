@@ -323,6 +323,16 @@ public class TieredBlockStore implements LocalBlockStore
   }
 
   @Override
+  public void updateCompositeRatio(double compositeRatio) {
+
+    for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
+      synchronized (listener) {
+        listener.onUpdateCompositeRatio(compositeRatio);
+      }
+    }
+  }
+
+  @Override
   public void moveBlock(long sessionId, long blockId, AllocateOptions moveOptions)
       throws IOException {
     LOG.debug("moveBlock: sessionId={}, blockId={}, options={}", sessionId,

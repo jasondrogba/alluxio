@@ -119,4 +119,6 @@ public interface BlockStoreEventListener {
    * @param ReplicaInfo
    */
   public void onUpdateReplicaInfo(Map<Long, Pair<Long, BlockStoreLocation>> ReplicaInfo);
+
+  void onUpdateCompositeRatio(double compositeRatio);
 }

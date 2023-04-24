@@ -92,7 +92,8 @@ public final class BlockMasterWorkerServiceHandler extends
         lostStorageMap, metrics);
     RpcUtils.call(LOG, () ->
         BlockHeartbeatPResponse.newBuilder().setCommand(mheartBeatSendInfo.getCommand())
-          .putAllReplicaInfo(mheartBeatSendInfo.getReplicaInfo())
+          .putAllReplicaInfo(mheartBeatSendInfo.getReplicaInfo()).setCompositeRatio(
+              mheartBeatSendInfo.getCompositeRatio())
           .build(), "blockHeartbeat", "request=%s", responseObserver, request);
   }
 

@@ -80,6 +80,10 @@ public class ReplicaBasedAnnotator implements
     }
   }
 
+  @Override
+  public void updateCompositeRatio(double ratio) {
+    // do nothing
+  }
   /**
    * ReplicaNumber is an online scheme.
    *

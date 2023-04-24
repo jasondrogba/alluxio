@@ -442,5 +442,14 @@ public class DefaultBlockIterator implements BlockIterator {
     public void onUpdateReplicaInfo(Map<Long, Pair<Long, BlockStoreLocation>> ReplicaInfo) {
       updateReplicaInfo(ReplicaInfo);
     }
+
+    @Override
+    public void onUpdateCompositeRatio(double compositeRatio) {
+      updateCompositeRatio(compositeRatio);
+    }
+  }
+
+  private void updateCompositeRatio(double compositeRatio) {
+    mBlockAnnotator.updateCompositeRatio(compositeRatio);
   }
 }

@@ -260,4 +260,6 @@ public interface LocalBlockStore
    * Remove Storage directories that are no longer accessible.
    */
   void removeInaccessibleStorage();
+
+    void updateCompositeRatio(double compositeRatio);
 }

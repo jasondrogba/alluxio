@@ -267,6 +267,10 @@ public class MonoBlockStore implements BlockStore {
   }
 
   @Override
+  public void updateCompositeRatio(double compositeRatio) {
+    mLocalBlockStore.updateCompositeRatio(compositeRatio);
+  }
+  @Override
   public void registerBlockStoreEventListener(BlockStoreEventListener listener) {
     mLocalBlockStore.registerBlockStoreEventListener(listener);
   }

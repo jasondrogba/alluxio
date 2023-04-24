@@ -66,6 +66,11 @@ public class LRFUAnnotator implements BlockAnnotator<LRFUAnnotator.LRFUSortedFie
     }
   }
 
+  @Override
+  public void updateCompositeRatio(double ratio) {
+    // do nothing
+  }
+
   /**
    * LRFU is an offline scheme.
    *

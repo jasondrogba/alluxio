@@ -4,6 +4,7 @@ import alluxio.collections.Pair;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.Reconfigurable;
+import alluxio.conf.ReconfigurableRegistry;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
@@ -47,6 +48,7 @@ public class CompositeAnnotator implements BlockAnnotator<CompositeAnnotator.Com
     public CompositeAnnotator() {
         //创建一个annotator
         mLRUClock = new AtomicLong(0);
+        ReconfigurableRegistry.register(this);
     }
 
     @Override
@@ -122,6 +124,10 @@ public class CompositeAnnotator implements BlockAnnotator<CompositeAnnotator.Com
 
     private double calculateAccessWeight(long logicTimeInterval) {
         return Math.pow(1.0 / ATTENUATION_FACTOR, logicTimeInterval * STEP_FACTOR);
+    }
+    @Override
+    public void updateCompositeRatio(double compositeRatio){
+        COMPOSITE_RATIO = compositeRatio;
     }
 
     protected class CompositeSortedField implements BlockSortedField {

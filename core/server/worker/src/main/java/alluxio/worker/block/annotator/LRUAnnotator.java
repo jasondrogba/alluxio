@@ -62,7 +62,10 @@ public class LRUAnnotator implements BlockAnnotator<LRUAnnotator.LRUSortedField>
       blockField.setSecond(new LRUSortedField(currentClock));
     }
   }
-
+  @Override
+  public void updateCompositeRatio(double ratio) {
+        // do nothing
+    }
   /**
    * LRU is an online scheme.
    *

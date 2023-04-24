@@ -252,4 +252,6 @@ public interface BlockStore extends Closeable, SessionCleanable {
    * @return load status for failed blocks
    */
   List<BlockStatus> load(List<Block> fileBlocks, String tag, OptionalLong bandwidth);
+
+    void updateCompositeRatio(double compositeRatio);
 }
