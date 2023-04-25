@@ -312,4 +312,8 @@ public class PagedBlockStore implements BlockStore {
 
   @Override
   public void updateReplicaInfo(Map<Long, Long> ReplicaInfo) {}
+
+  @Override
+  public void updateCompositeRatio(double compositeRatio) {}
+
 }

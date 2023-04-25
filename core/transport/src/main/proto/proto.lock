@@ -481,6 +481,11 @@
                 "id": 1,
                 "name": "command",
                 "type": "grpc.Command"
+              },
+              {
+                "id": 3,
+                "name": "compositeRatio",
+                "type": "double"
               }
             ],
             "maps": [

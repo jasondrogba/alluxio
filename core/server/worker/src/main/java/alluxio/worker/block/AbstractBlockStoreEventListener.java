@@ -63,4 +63,8 @@ public abstract class AbstractBlockStoreEventListener implements BlockStoreEvent
 
   @Override
   public void onUpdateReplicaInfo(Map<Long, Pair<Long, BlockStoreLocation>> ReplicaInfo) {}
+
+  @Override
+  public void onUpdateCompositeRatio(double compositeRatio) {}
+
 }
