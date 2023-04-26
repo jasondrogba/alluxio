@@ -17,7 +17,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import  alluxio.worker.block.annotator.LRFUAnnotator;
 import alluxio.worker.block.annotator.ReplicaBasedAnnotator;
-public class CompositeAnnotator implements BlockAnnotator<CompositeAnnotator.CompositeSortedField>, Reconfigurable {
+public class CompositeAnnotator implements BlockAnnotator<CompositeAnnotator.CompositeSortedField> {
     private static final Logger LOG = LoggerFactory.getLogger(CompositeAnnotator.class);
 
     /** In the range of [0, 1]. Closer to 0, Composite closer to LRFU. Closer to 1, Composite closer to ReplicaLRU. */
@@ -48,7 +48,7 @@ public class CompositeAnnotator implements BlockAnnotator<CompositeAnnotator.Com
     public CompositeAnnotator() {
         //创建一个annotator
         mLRUClock = new AtomicLong(0);
-        ReconfigurableRegistry.register(this);
+//        ReconfigurableRegistry.register(this);
     }
 
     @Override
@@ -81,15 +81,15 @@ public class CompositeAnnotator implements BlockAnnotator<CompositeAnnotator.Com
         }
     }
 
-    @Override
-    public void update(){
-        //update COMPOSITE_RATIO
-        double newRatio = Configuration.getDouble(
-                PropertyKey.WORKER_BLOCK_ANNOTATOR_COMPOSITE_RATIO);
-        COMPOSITE_RATIO = newRatio;
-        LOG.info("The Ratio of {} updated to {}",
-                PropertyKey.WORKER_BLOCK_ANNOTATOR_CLASS,PropertyKey.WORKER_BLOCK_ANNOTATOR_COMPOSITE_RATIO);
-    }
+//    @Override
+//    public void update(){
+//        //update COMPOSITE_RATIO
+//        double newRatio = Configuration.getDouble(
+//                PropertyKey.WORKER_BLOCK_ANNOTATOR_COMPOSITE_RATIO);
+//        COMPOSITE_RATIO = newRatio;
+//        LOG.info("The Ratio of {} updated to {}",
+//                PropertyKey.WORKER_BLOCK_ANNOTATOR_CLASS,PropertyKey.WORKER_BLOCK_ANNOTATOR_COMPOSITE_RATIO);
+//    }
 
 
     @Override
@@ -128,6 +128,8 @@ public class CompositeAnnotator implements BlockAnnotator<CompositeAnnotator.Com
     @Override
     public void updateCompositeRatio(double compositeRatio){
         COMPOSITE_RATIO = compositeRatio;
+        LOG.info("Composite ratio update for : {}. : {}", compositeRatio, COMPOSITE_RATIO);
+
     }
 
     protected class CompositeSortedField implements BlockSortedField {

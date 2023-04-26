@@ -224,7 +224,8 @@ public class BlockMasterClient extends AbstractMasterClient {
         .getMs(PropertyKey.WORKER_MASTER_PERIODICAL_RPC_TIMEOUT), TimeUnit.MILLISECONDS)
         .blockHeartbeat(request), LOG, "Heartbeat", "workerId=%d", workerId);
     return new HeartBeatResponseMessage().setCommand(heartbeatReturn.getCommand())
-            .setReplicaInfo(heartbeatReturn.getReplicaInfoMap());
+            .setReplicaInfo(heartbeatReturn.getReplicaInfoMap())
+            .setCompositeRatio(heartbeatReturn.getCompositeRatio());
   }
 
   private GetRegisterLeasePResponse acquireRegisterLease(

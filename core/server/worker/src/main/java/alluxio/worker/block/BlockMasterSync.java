@@ -284,6 +284,7 @@ public final class BlockMasterSync implements HeartbeatExecutor {
     String annotatorType = Configuration.getString(PropertyKey.WORKER_BLOCK_ANNOTATOR_CLASS);
     if (annotatorType.equals(CompositeAnnotator.class.getName())) {
       mBlockWorker.updateCompositeRatio(compositeRatio);
+      LOG.info("Update composite ratio to {}", compositeRatio);
     }
   }
 
