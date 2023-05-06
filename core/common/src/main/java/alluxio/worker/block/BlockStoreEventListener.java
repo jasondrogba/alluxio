@@ -118,7 +118,9 @@ public interface BlockStoreEventListener {
    *
    * @param ReplicaInfo
    */
-  public void onUpdateReplicaInfo(Map<Long, Pair<Long, BlockStoreLocation>> ReplicaInfo);
+  void onUpdateReplicaInfo(Map<Long, Pair<Long, BlockStoreLocation>> ReplicaInfo);
 
   void onUpdateCompositeRatio(double compositeRatio);
+
+  void onUpdateDynamicSort(String dynamicSort);
 }

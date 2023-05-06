@@ -486,6 +486,11 @@
                 "id": 3,
                 "name": "compositeRatio",
                 "type": "double"
+              },
+              {
+                "id": 4,
+                "name": "dynamicSort",
+                "type": "string"
               }
             ],
             "maps": [

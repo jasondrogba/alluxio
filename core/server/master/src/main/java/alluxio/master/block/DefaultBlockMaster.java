@@ -1285,7 +1285,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     Command workerCommand = null;
     Map<java.lang.Long, java.lang.Long> mworkerReplicaInfo = new HashMap<>();
     double mWorkerCompositeRatio = Configuration.getDouble(PropertyKey.WORKER_BLOCK_ANNOTATOR_COMPOSITE_RATIO);
-
+    String mWorkerDynamicSort = Configuration.getString(PropertyKey.WORKER_BLOCK_ANNOTATOR_DYNAMIC_SORT);
     try (LockResource r = worker.lockWorkerMeta(
         EnumSet.of(WorkerMetaLockSection.USAGE, WorkerMetaLockSection.BLOCKS), false)) {
       worker.addLostStorage(lostStorage);
@@ -1309,14 +1309,15 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
             .addAllData(toRemoveBlocks).build();
       }
     }
-
     // Update the TS again
     worker.updateLastUpdatedTimeMs();
     mworkerReplicaInfo = worker.getReplicaInfo(mBlockMetaStore);
     // Should not reach here
     Preconditions.checkNotNull(workerCommand, "Worker heartbeat response command is null!");
     return new HeartBeatResponseMessage().setCommand(workerCommand)
-            .setReplicaInfo(mworkerReplicaInfo).setCompositeRatio(mWorkerCompositeRatio);
+            .setReplicaInfo(mworkerReplicaInfo)
+            .setCompositeRatio(mWorkerCompositeRatio)
+            .setDynamicSort(mWorkerDynamicSort);
   }
 
   @Override

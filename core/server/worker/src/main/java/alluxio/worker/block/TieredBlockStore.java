@@ -333,6 +333,16 @@ public class TieredBlockStore implements LocalBlockStore
   }
 
   @Override
+  public void updateDynamicSort(String dynamicSort) {
+
+    for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
+      synchronized (listener) {
+        listener.onUpdateDynamicSort(dynamicSort);
+      }
+    }
+  }
+
+  @Override
   public void moveBlock(long sessionId, long blockId, AllocateOptions moveOptions)
       throws IOException {
     LOG.debug("moveBlock: sessionId={}, blockId={}, options={}", sessionId,

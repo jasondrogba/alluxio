@@ -447,9 +447,19 @@ public class DefaultBlockIterator implements BlockIterator {
     public void onUpdateCompositeRatio(double compositeRatio) {
       updateCompositeRatio(compositeRatio);
     }
+
+    @Override
+    public void onUpdateDynamicSort(String dynamicSort) {
+      updateDynamicSort(dynamicSort);
+    }
   }
 
   private void updateCompositeRatio(double compositeRatio) {
     mBlockAnnotator.updateCompositeRatio(compositeRatio);
   }
+
+  private void updateDynamicSort(String dynamicSort) {
+    mBlockAnnotator.updateDynamicSort(dynamicSort);
+  }
+
 }

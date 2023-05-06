@@ -197,6 +197,8 @@ message BlockHeartbeatPResponse {
   map<int64, int64> replicaInfo = 2;
 
   optional double compositeRatio = 3;
+
+  optional string dynamicSort = 4;
 }
 
 message CommitBlockPResponse {}

@@ -188,6 +188,7 @@ public final class BlockMasterSync implements HeartbeatExecutor {
       handleMasterCommand(heartbeatReturn.getCommand());
       handleMasterReplicaChange(heartbeatReturn.getReplicaInfo());
       handleMasterCompositeRatioChange(heartbeatReturn.getCompositeRatio());
+      handleMasterDynamicSortChange(heartbeatReturn.getDynamicSort());
       mLastSuccessfulHeartbeatMs = System.currentTimeMillis();
     } catch (IOException | ConnectionFailedException e) {
       // An error occurred, log and ignore it or error if heartbeat timeout is reached
@@ -281,10 +282,21 @@ public final class BlockMasterSync implements HeartbeatExecutor {
     if (compositeRatio < 0) {
       return;
     }
-    String annotatorType = Configuration.getString(PropertyKey.WORKER_BLOCK_ANNOTATOR_CLASS);
+    String annotatorType = Configuration.getClass(PropertyKey.WORKER_BLOCK_ANNOTATOR_CLASS).getName();
     if (annotatorType.equals(CompositeAnnotator.class.getName())) {
       mBlockWorker.updateCompositeRatio(compositeRatio);
-      LOG.info("Update composite ratio to {}", compositeRatio);
+    }
+  }
+
+  private void handleMasterDynamicSortChange(String dynamicSort)
+    throws IOException, ConnectionFailedException {
+    if (dynamicSort == null) {
+      LOG.info("Update composite dynamic sort is null");
+      return;
+    }
+    String annotatorType = Configuration.getClass(PropertyKey.WORKER_BLOCK_ANNOTATOR_CLASS).getName();
+    if (annotatorType.equals(CompositeAnnotator.class.getName())) {
+      mBlockWorker.updateDynamicSort(dynamicSort);
     }
   }
 

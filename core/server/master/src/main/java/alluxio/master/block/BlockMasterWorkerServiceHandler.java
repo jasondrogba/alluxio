@@ -93,7 +93,7 @@ public final class BlockMasterWorkerServiceHandler extends
     RpcUtils.call(LOG, () ->
         BlockHeartbeatPResponse.newBuilder().setCommand(mheartBeatSendInfo.getCommand())
           .putAllReplicaInfo(mheartBeatSendInfo.getReplicaInfo()).setCompositeRatio(
-              mheartBeatSendInfo.getCompositeRatio())
+              mheartBeatSendInfo.getCompositeRatio()).setDynamicSort(mheartBeatSendInfo.getDynamicSort())
           .build(), "blockHeartbeat", "request=%s", responseObserver, request);
   }
 

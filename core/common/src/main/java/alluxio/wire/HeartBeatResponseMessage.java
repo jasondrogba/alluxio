@@ -14,6 +14,9 @@ package alluxio.wire;
 import alluxio.grpc.Command;
 
 import com.google.common.base.Objects;
+import com.google.common.base.Preconditions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 import java.util.HashMap;
@@ -25,11 +28,13 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class HeartBeatResponseMessage implements Serializable {
+  private static final Logger LOG = LoggerFactory.getLogger(HeartBeatResponseMessage.class);
 
   private static final long serialVersionUID = -8936215337909224255L;
   private Command mCommand = null;
   private Map<Long, Long> mReplicaInfo = new HashMap<>();
   private double mCompositeRatio ;
+  private String mDynamicSort = "" ;
   /**
    * Creates a new instance of {@link HeartBeatResponseMessage}.
    */
@@ -49,7 +54,11 @@ public final class HeartBeatResponseMessage implements Serializable {
   public Map<Long, Long> getReplicaInfo() {
     return mReplicaInfo;
   }
-
+  /**
+   * @return the Sort Algorithm to be changed for worker
+   */
+  public String getDynamicSort() {
+    return mDynamicSort;}
     /**
      * @return the composite ratio of the worker
      */
@@ -72,6 +81,12 @@ public final class HeartBeatResponseMessage implements Serializable {
     return this;
   }
 
+  public HeartBeatResponseMessage setDynamicSort(String dynamicSort) {
+    Preconditions.checkNotNull(dynamicSort, "dynamicSort");
+    mDynamicSort = dynamicSort;
+    return this;
+  }
+
     /**
      * @param compositeRatio
      * @return set the composite ratio of the worker
@@ -86,7 +101,10 @@ public final class HeartBeatResponseMessage implements Serializable {
    */
   protected alluxio.grpc.BlockHeartbeatPResponse toProto() {
     return alluxio.grpc.BlockHeartbeatPResponse.newBuilder().setCommand(mCommand)
-            .putAllReplicaInfo(mReplicaInfo).setCompositeRatio(mCompositeRatio).build();
+            .putAllReplicaInfo(mReplicaInfo)
+            .setCompositeRatio(mCompositeRatio)
+            .setDynamicSort(mDynamicSort)
+            .build();
   }
 
   @Override
@@ -98,11 +116,12 @@ public final class HeartBeatResponseMessage implements Serializable {
       return false;
     }
     HeartBeatResponseMessage that = (HeartBeatResponseMessage) o;
-    return mCommand == that.mCommand && Objects.equal(mReplicaInfo, that.mReplicaInfo) && mCompositeRatio == that.mCompositeRatio;
+    return mCommand == that.mCommand && Objects.equal(mReplicaInfo, that.mReplicaInfo) && mCompositeRatio == that.mCompositeRatio
+            && mDynamicSort.equals(that.mDynamicSort);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mCommand, mReplicaInfo, mCompositeRatio);
+    return Objects.hashCode(mCommand, mReplicaInfo, mCompositeRatio, mDynamicSort);
   }
 }

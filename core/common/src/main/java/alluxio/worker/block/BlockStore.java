@@ -253,5 +253,7 @@ public interface BlockStore extends Closeable, SessionCleanable {
    */
   List<BlockStatus> load(List<Block> fileBlocks, String tag, OptionalLong bandwidth);
 
-    void updateCompositeRatio(double compositeRatio);
+  void updateCompositeRatio(double compositeRatio);
+
+  void updateDynamicSort(String dynamicSort);
 }

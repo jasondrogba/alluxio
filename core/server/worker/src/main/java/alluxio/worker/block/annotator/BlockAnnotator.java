@@ -29,6 +29,7 @@ import javax.annotation.concurrent.ThreadSafe;
 public interface BlockAnnotator<T extends BlockSortedField> {
 
   void updateCompositeRatio(double compositeRatio);
+  void updateDynamicSort(String dynamicSort);
 
   /**
    * Factory for {@link BlockAnnotator}.

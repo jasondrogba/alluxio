@@ -315,5 +315,7 @@ public class PagedBlockStore implements BlockStore {
 
   @Override
   public void updateCompositeRatio(double compositeRatio) {}
+  @Override
+  public void updateDynamicSort(String dynamicSort) {}
 
 }

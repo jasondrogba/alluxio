@@ -261,5 +261,7 @@ public interface LocalBlockStore
    */
   void removeInaccessibleStorage();
 
-    void updateCompositeRatio(double compositeRatio);
+  void updateCompositeRatio(double compositeRatio);
+
+  void updateDynamicSort(String dynamicSort);
 }

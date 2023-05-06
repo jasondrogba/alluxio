@@ -629,7 +629,14 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
         if (Configuration.getBoolean(PropertyKey.CONF_DYNAMIC_UPDATE_ENABLED)
             && key.isDynamic()) {
           Object oldValue = Configuration.get(key);
-          Configuration.set(key, entry.getValue(), Source.RUNTIME);
+//          if (key.equals(PropertyKey.WORKER_BLOCK_ANNOTATOR_COMPOSITE_RATIO)) {
+//            LOG.info("Update composite ratio to {}", entry.getValue());
+//            Configuration.set(key, Double.valueOf(entry.getValue()), Source.RUNTIME);
+//          }else{
+//            Configuration.set(key, entry.getValue(), Source.RUNTIME);
+//          }
+          Object value = key.parseValue(entry.getValue());
+          Configuration.set(key, value, Source.RUNTIME);
           result.put(entry.getKey(), true);
           successCount++;
           LOG.info("Property {} has been updated to \"{}\" from \"{}\"",
@@ -640,6 +647,10 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
           if (key.equals(PropertyKey.WORKER_BLOCK_ANNOTATOR_COMPOSITE_RATIO)) {
             LOG.info("Update composite ratio to {}", entry.getValue());
           }
+          if (key.equals(PropertyKey.WORKER_BLOCK_ANNOTATOR_DYNAMIC_SORT)) {
+            LOG.info("Update composite dynamic sort to {}", entry.getValue());
+          }
+
         } else {
           LOG.debug("Update a non-dynamic property {} is not allowed", key.getName());
           result.put(entry.getKey(), false);

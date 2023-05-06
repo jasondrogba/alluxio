@@ -225,7 +225,8 @@ public class BlockMasterClient extends AbstractMasterClient {
         .blockHeartbeat(request), LOG, "Heartbeat", "workerId=%d", workerId);
     return new HeartBeatResponseMessage().setCommand(heartbeatReturn.getCommand())
             .setReplicaInfo(heartbeatReturn.getReplicaInfoMap())
-            .setCompositeRatio(heartbeatReturn.getCompositeRatio());
+            .setCompositeRatio(heartbeatReturn.getCompositeRatio())
+            .setDynamicSort(heartbeatReturn.getDynamicSort());
   }
 
   private GetRegisterLeasePResponse acquireRegisterLease(

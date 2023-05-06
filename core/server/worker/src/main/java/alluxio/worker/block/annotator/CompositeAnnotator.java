@@ -19,7 +19,8 @@ import  alluxio.worker.block.annotator.LRFUAnnotator;
 import alluxio.worker.block.annotator.ReplicaBasedAnnotator;
 public class CompositeAnnotator implements BlockAnnotator<CompositeAnnotator.CompositeSortedField> {
     private static final Logger LOG = LoggerFactory.getLogger(CompositeAnnotator.class);
-
+    /** When alluxio is running, dynamically switch the block sorting algorithm */
+    private static String DYNAMIC_SORT;
     /** In the range of [0, 1]. Closer to 0, Composite closer to LRFU. Closer to 1, Composite closer to ReplicaLRU. */
     private static  double COMPOSITE_RATIO;
     /** In the range of [0, 1]. Closer to 0, LRFU closer to LFU. Closer to 1, LRFU closer to LRU. */
@@ -30,6 +31,8 @@ public class CompositeAnnotator implements BlockAnnotator<CompositeAnnotator.Com
     private static final double REPLICA_RATIO;
     private final AtomicLong mLRUClock ;
     static {
+        DYNAMIC_SORT = Configuration.getString(
+                PropertyKey.WORKER_BLOCK_ANNOTATOR_DYNAMIC_SORT);
         COMPOSITE_RATIO = Configuration.getDouble(
                 PropertyKey.WORKER_BLOCK_ANNOTATOR_COMPOSITE_RATIO);
         STEP_FACTOR = Configuration.getDouble(
@@ -110,14 +113,29 @@ public class CompositeAnnotator implements BlockAnnotator<CompositeAnnotator.Com
 //        long replicaNum =  (oldValue != null) ? oldValue.mReplicaNum : 0;
 //        long clockValue = mLRUClock.incrementAndGet();
         if (oldValue != null && clockValue != oldValue.mClockValue) {
-            //calculate LRFU value
-            double crfValueLRFU = oldValue.mCrfValue * calculateAccessWeight(clockValue - oldValue.mClockValue) + 1.0;
-            //calculate ReplicabasedLRU value
-            double crfValueReplica = clockValue * LRU_RATIO - replicaNum * REPLICA_RATIO;;
-            //composite LRFU value and ReplicabasedLRU value
-            crfValue = crfValueLRFU *(1-COMPOSITE_RATIO) + crfValueReplica * COMPOSITE_RATIO;
+//            //calculate LRFU value
+//            double crfValueLRFU = oldValue.mCrfValue * calculateAccessWeight(clockValue - oldValue.mClockValue) + 1.0;
+//            //calculate ReplicabasedLRU value
+//            double crfValueReplica = clockValue * LRU_RATIO - replicaNum * REPLICA_RATIO;;
+//            //composite LRFU value and ReplicabasedLRU value
+//            crfValue = crfValueLRFU *(1-COMPOSITE_RATIO) + crfValueReplica * COMPOSITE_RATIO;
+            //TODO: change the Dynamic Sort to a STRING value.
+            switch (DYNAMIC_SORT){
+                case "LRU":
+                    crfValue = clockValue;
+                    break;
+                case "LRFU":
+                    crfValue = oldValue.mCrfValue * calculateAccessWeight(clockValue - oldValue.mClockValue) + 1.0;
+                    break;
+                case "REPLICA":
+                    crfValue = clockValue * LRU_RATIO - replicaNum * REPLICA_RATIO;
+                    break;
+                default:
+                    break;
+            }
 
         }
+
 
         return new CompositeAnnotator.CompositeSortedField(clockValue, replicaNum, crfValue);
     }
@@ -127,9 +145,19 @@ public class CompositeAnnotator implements BlockAnnotator<CompositeAnnotator.Com
     }
     @Override
     public void updateCompositeRatio(double compositeRatio){
+        if (COMPOSITE_RATIO!=compositeRatio){
+            LOG.info("Composite ratio {} update for : {}", COMPOSITE_RATIO, compositeRatio);
+        }
         COMPOSITE_RATIO = compositeRatio;
-        LOG.info("Composite ratio update for : {}. : {}", compositeRatio, COMPOSITE_RATIO);
 
+    }
+
+    @Override
+    public void updateDynamicSort(String dynamicSort){
+        if (!DYNAMIC_SORT.equals(dynamicSort)){
+            LOG.info("Dynamic sort {} update for : {}", DYNAMIC_SORT, dynamicSort);
+        }
+        DYNAMIC_SORT = dynamicSort;
     }
 
     protected class CompositeSortedField implements BlockSortedField {

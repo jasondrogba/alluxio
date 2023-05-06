@@ -84,6 +84,11 @@ public class ReplicaBasedAnnotator implements
   public void updateCompositeRatio(double ratio) {
     // do nothing
   }
+
+  @Override
+  public void updateDynamicSort(String dynamicSort) {
+    // do nothing
+  }
   /**
    * ReplicaNumber is an online scheme.
    *

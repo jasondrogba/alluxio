@@ -67,4 +67,7 @@ public abstract class AbstractBlockStoreEventListener implements BlockStoreEvent
   @Override
   public void onUpdateCompositeRatio(double compositeRatio) {}
 
+  @Override
+  public void onUpdateDynamicSort(String dynamicSort) {}
+
 }

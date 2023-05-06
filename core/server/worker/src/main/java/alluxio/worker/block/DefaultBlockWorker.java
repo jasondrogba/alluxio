@@ -397,6 +397,10 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   public void updateCompositeRatio(double compositeRatio) {
     mBlockStore.updateCompositeRatio(compositeRatio);
   }
+  @Override
+  public void updateDynamicSort(String dynamicSort) {
+    mBlockStore.updateDynamicSort(dynamicSort);
+  }
 
 
   @Override

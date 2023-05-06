@@ -197,4 +197,8 @@ public class NoopBlockWorker implements BlockWorker {
   public void updateCompositeRatio(double compositeRatio) {
 
   }
+  @Override
+  public void updateDynamicSort(String dynamicSort) {
+
+  }
 }

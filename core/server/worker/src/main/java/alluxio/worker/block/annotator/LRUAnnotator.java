@@ -65,7 +65,12 @@ public class LRUAnnotator implements BlockAnnotator<LRUAnnotator.LRUSortedField>
   @Override
   public void updateCompositeRatio(double ratio) {
         // do nothing
-    }
+  }
+
+  @Override
+  public void updateDynamicSort(String dynamicSort) {
+        // do nothing
+  }
   /**
    * LRU is an online scheme.
    *

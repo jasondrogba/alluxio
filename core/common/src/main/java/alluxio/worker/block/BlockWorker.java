@@ -236,5 +236,15 @@ public interface BlockWorker extends Worker, SessionCleanable {
    */
   void updateReplicaInfo(Map<Long, Long> ReplicaInfo);
 
-    void updateCompositeRatio(double compositeRatio);
+  /**
+   * Update composite Ratio.
+   * @param compositeRatio
+   */
+  void updateCompositeRatio(double compositeRatio);
+
+  /**
+   * Update dynamic sort.
+   * @param dynamicSort
+   */
+  void updateDynamicSort(String dynamicSort);
 }

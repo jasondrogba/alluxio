@@ -3586,6 +3586,16 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
+  public static final PropertyKey WORKER_BLOCK_ANNOTATOR_DYNAMIC_SORT =
+          stringBuilder(Name.WORKER_BLOCK_ANNOTATOR_DYNAMIC_SORT)
+                  .setDefaultValue("LRU")
+                  .setDescription("When alluxio is running,"
+                          +"dynamically switch the block sorting algorithm")
+                  .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+                  .setScope(Scope.ALL)
+                  .setIsDynamic(true)
+                  .build();
+
   public static final PropertyKey WORKER_BLOCK_ANNOTATOR_LRFU_ATTENUATION_FACTOR =
       doubleBuilder(Name.WORKER_BLOCK_ANNOTATOR_LRFU_ATTENUATION_FACTOR)
           .setDefaultValue(2.0)
@@ -3621,7 +3631,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
                   .setDefaultValue(0)
                   .setDescription("A factor to control the LRFU and Replica, range from 0 to 1")
                   .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-                  .setScope(Scope.WORKER)
+                  .setScope(Scope.ALL)
                   .setIsDynamic(true)
                   .build();
   public static final PropertyKey MAINTAIN_REPLICA_INFO =
@@ -7339,6 +7349,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String WORKER_EVICTOR_CLASS = "alluxio.worker.evictor.class";
     public static final String WORKER_BLOCK_ANNOTATOR_CLASS =
         "alluxio.worker.block.annotator.class";
+    public static final String WORKER_BLOCK_ANNOTATOR_DYNAMIC_SORT =
+            "alluxio.worker.block.annotator.dynamic.sort";
     public static final String WORKER_BLOCK_ANNOTATOR_LRFU_ATTENUATION_FACTOR =
         "alluxio.worker.block.annotator.lrfu.attenuation.factor";
     public static final String WORKER_BLOCK_ANNOTATOR_LRFU_STEP_FACTOR =

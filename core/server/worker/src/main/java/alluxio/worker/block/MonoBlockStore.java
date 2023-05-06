@@ -271,6 +271,10 @@ public class MonoBlockStore implements BlockStore {
     mLocalBlockStore.updateCompositeRatio(compositeRatio);
   }
   @Override
+  public void updateDynamicSort(String dynamicSort) {
+    mLocalBlockStore.updateDynamicSort(dynamicSort);
+  }
+  @Override
   public void registerBlockStoreEventListener(BlockStoreEventListener listener) {
     mLocalBlockStore.registerBlockStoreEventListener(listener);
   }

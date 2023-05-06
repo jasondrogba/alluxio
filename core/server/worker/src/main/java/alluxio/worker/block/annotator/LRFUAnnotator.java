@@ -71,6 +71,11 @@ public class LRFUAnnotator implements BlockAnnotator<LRFUAnnotator.LRFUSortedFie
     // do nothing
   }
 
+  @Override
+  public void updateDynamicSort(String dynamicSort) {
+    // do nothing
+  }
+
   /**
    * LRFU is an offline scheme.
    *
