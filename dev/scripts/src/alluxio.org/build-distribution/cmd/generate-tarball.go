@@ -234,7 +234,7 @@ func addAdditionalFiles(srcPath, dstPath string, hadoopVersion version, version 
 	mkdir(filepath.Join(dstPath, "integration/docker/conf"))
 
 	mkdir(filepath.Join(dstPath, "lib"))
-	addModules(srcPath, dstPath, "underfs", ufsModulesFlag, version, ufsModules)
+	//addModules(srcPath, dstPath, "underfs", ufsModulesFlag, version, ufsModules)
 }
 
 func generateTarball(skipUI, skipHelm bool) error {
@@ -262,7 +262,7 @@ func generateTarball(skipUI, skipHelm bool) error {
 	run(fmt.Sprintf("copying source from %v to %v", repoPath, srcPath), "cp", "-R", repoPath+"/.", srcPath)
 
 	chdir(srcPath)
-	run("running git clean -fdx", "git", "clean", "-fdx")
+	//run("running git clean -fdx", "git", "clean", "-fdx")
 
 	version, err := getVersion()
 	if err != nil {
@@ -277,16 +277,16 @@ func generateTarball(skipUI, skipHelm bool) error {
 	// Update the FUSE jar path
 	replace("integration/fuse/bin/alluxio-fuse", "target/alluxio-integration-fuse-${VERSION}-jar-with-dependencies.jar", "alluxio-fuse-${VERSION}.jar")
 
-	mvnArgs := getCommonMvnArgs(hadoopVersion)
-	if skipUI {
-		mvnArgsNoUI := append(mvnArgs, "-pl", "!webui")
-		run("compiling repo without UI", "mvn", mvnArgsNoUI...)
-	} else {
-		run("compiling repo", "mvn", mvnArgs...)
-	}
-
-	// Compile ufs modules for the main build
-	buildModules(srcPath, "underfs", ufsModulesFlag, version, ufsModules, mvnArgs)
+	//mvnArgs := getCommonMvnArgs(hadoopVersion)
+	//if skipUI {
+	//	mvnArgsNoUI := append(mvnArgs, "-pl", "!webui")
+	//	run("compiling repo without UI", "mvn", mvnArgsNoUI...)
+	//} else {
+	//	run("compiling repo", "mvn", mvnArgs...)
+	//}
+	//
+	//// Compile ufs modules for the main build
+	//buildModules(srcPath, "underfs", ufsModulesFlag, version, ufsModules, mvnArgs)
 
 	versionString := version
 	if skipUI {
@@ -313,13 +313,13 @@ func generateTarball(skipUI, skipHelm bool) error {
 		return err
 	}
 
-	run("adding Alluxio client assembly jar", "mv", fmt.Sprintf("assembly/client/target/alluxio-assembly-client-%v-jar-with-dependencies.jar", version), filepath.Join(dstPath, "assembly", fmt.Sprintf("alluxio-client-%v.jar", version)))
-	run("adding Alluxio server assembly jar", "mv", fmt.Sprintf("assembly/server/target/alluxio-assembly-server-%v-jar-with-dependencies.jar", version), filepath.Join(dstPath, "assembly", fmt.Sprintf("alluxio-server-%v.jar", version)))
-	run("adding Alluxio FUSE jar", "mv", fmt.Sprintf("integration/fuse/target/alluxio-integration-fuse-%v-jar-with-dependencies.jar", version), filepath.Join(dstPath, "integration", "fuse", fmt.Sprintf("alluxio-fuse-%v.jar", version)))
+	run("adding Alluxio client assembly jar", "cp", fmt.Sprintf("assembly/client/target/alluxio-assembly-client-%v-jar-with-dependencies.jar", version), filepath.Join(dstPath, "assembly", fmt.Sprintf("alluxio-client-%v.jar", version)))
+	run("adding Alluxio server assembly jar", "cp", fmt.Sprintf("assembly/server/target/alluxio-assembly-server-%v-jar-with-dependencies.jar", version), filepath.Join(dstPath, "assembly", fmt.Sprintf("alluxio-server-%v.jar", version)))
+	run("adding Alluxio FUSE jar", "cp", fmt.Sprintf("integration/fuse/target/alluxio-integration-fuse-%v-jar-with-dependencies.jar", version), filepath.Join(dstPath, "integration", "fuse", fmt.Sprintf("alluxio-fuse-%v.jar", version)))
 	// Generate Helm templates in the dstPath
 	run("adding Helm chart", "cp", "-r", filepath.Join(srcPath, "integration/kubernetes/helm-chart"), filepath.Join(dstPath, "integration/kubernetes/helm-chart"))
 	if !skipHelm {
-		chdir(filepath.Join(dstPath, "integration/kubernetes/helm-chart/alluxio/"))
+		chdir(filepath.Join(dstPath, "./integration/kubernetes/helm-chart/alluxio/"))
 		run("generate Helm templates", "bash", "helm-generate.sh", "all")
 		chdir(srcPath)
 	}

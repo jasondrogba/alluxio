@@ -629,12 +629,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
         if (Configuration.getBoolean(PropertyKey.CONF_DYNAMIC_UPDATE_ENABLED)
             && key.isDynamic()) {
           Object oldValue = Configuration.get(key);
-//          if (key.equals(PropertyKey.WORKER_BLOCK_ANNOTATOR_COMPOSITE_RATIO)) {
-//            LOG.info("Update composite ratio to {}", entry.getValue());
-//            Configuration.set(key, Double.valueOf(entry.getValue()), Source.RUNTIME);
-//          }else{
-//            Configuration.set(key, entry.getValue(), Source.RUNTIME);
-//          }
+
           Object value = key.parseValue(entry.getValue());
           Configuration.set(key, value, Source.RUNTIME);
           result.put(entry.getKey(), true);
