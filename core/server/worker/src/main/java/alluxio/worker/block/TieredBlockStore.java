@@ -318,7 +318,7 @@ public class TieredBlockStore implements LocalBlockStore
         updateReplicaInfo.put(entry.getKey(),
                 new Pair<Long, BlockStoreLocation>(entry.getValue(), loc));
       }else {
-          LOG.info("updateReplicaInfo: blockId={} is not present", entry.getKey());
+          LOG.debug("updateReplicaInfo: blockId={} is not present", entry.getKey());
       }
 //      BlockStoreLocation loc = meta.getBlockLocation();
 //      updateReplicaInfo.put(entry.getKey(),

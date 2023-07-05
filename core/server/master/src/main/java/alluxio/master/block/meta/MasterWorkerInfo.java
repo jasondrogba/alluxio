@@ -683,6 +683,7 @@ public final class MasterWorkerInfo {
    */
   public void updateReplica(long blockId, long AddedNum) {
     try (LockResource r = lockReplicaInfoBlock()) {
+      LOG.debug("getReplicaInfo: {}, blockId: {}, replicaNum size: {}, addedNum: {}, block value: {}",mRequiredSyncReplica,blockId, mReplicaNum.size(), AddedNum, mReplicaNum.get(blockId));
       if (mRequiredSyncReplica || mReplicaNum.size() > 10000) {
         //todo: 10000 is temporary, the upper bound of the number of changes to record
         mRequiredSyncReplica = true;
@@ -692,8 +693,11 @@ public final class MasterWorkerInfo {
         // the number of machines in the cluster is limited
         // so replica number can be stored in short to save the memory
         mReplicaNum.compute(blockId, (key, value) -> (short) (value + (short) AddedNum));
+        LOG.debug("containsKey blockId: {}, replicaNum size: {}, value: {}",blockId, mReplicaNum.size(), mReplicaNum.get(blockId));
       } else {
         mReplicaNum.put(blockId, (short) AddedNum);
+        LOG.debug("newput blockId: {}, replicaNum size: {}, value: {}",blockId, mReplicaNum.size(), mReplicaNum.get(blockId));
+
       }
     }
   }
@@ -703,12 +707,15 @@ public final class MasterWorkerInfo {
    * @param mBlockMetaStore
    * @return the replica info sent to the workers
    */
-  public Map<Long, Long> getReplicaInfo(BlockMetaStore mBlockMetaStore) {
+  public Map<Long, Long>  getReplicaInfo(BlockMetaStore mBlockMetaStore) {
     Map<Long, Long> retReplicaNum = new HashMap<>();
+//    LOG.info("getReplicaInfo: {}",mRequiredSyncReplica);
     if (mRequiredSyncReplica) {
       try (LockResource r = lockReplicaInfoBlock()) {
         for (Long blockId : mBlocks) {
-          retReplicaNum.put(blockId, (long) mBlockMetaStore.getLocations(blockId).size());
+          if(mBlockMetaStore.getLocations(blockId).size() != 0){
+            retReplicaNum.put(blockId, (long) mBlockMetaStore.getLocations(blockId).size());
+          }
         }
         mRequiredSyncReplica = false;
       }
@@ -716,6 +723,7 @@ public final class MasterWorkerInfo {
     }
     try (LockResource r = lockReplicaInfoBlock()) {
       for (Map.Entry<Long, Short> entry : mReplicaNum.entrySet()) {
+        LOG.debug(" update: {}, blockId: {}, size: {}",mRequiredSyncReplica, entry.getKey(), entry.getValue());
         if (entry.getValue() != 0) {
           retReplicaNum.put(entry.getKey(), (long) entry.getValue());
         }

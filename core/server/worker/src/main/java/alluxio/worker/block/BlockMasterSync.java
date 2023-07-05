@@ -270,7 +270,7 @@ public final class BlockMasterSync implements HeartbeatExecutor {
     if (ReplicaInfo.isEmpty()) {
       return;
     }
-    String annotatorType = Configuration.getString(PropertyKey.WORKER_BLOCK_ANNOTATOR_CLASS);
+    String annotatorType = Configuration.getClass(PropertyKey.WORKER_BLOCK_ANNOTATOR_CLASS).getName();
 //    if (annotatorType.equals(ReplicaBasedAnnotator.class.getName())) {
     if (annotatorType.equals(CompositeAnnotator.class.getName())) {
       mBlockWorker.updateReplicaInfo(ReplicaInfo);

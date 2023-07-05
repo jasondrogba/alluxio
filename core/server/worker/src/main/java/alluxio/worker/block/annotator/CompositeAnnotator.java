@@ -133,10 +133,7 @@ public class CompositeAnnotator implements BlockAnnotator<CompositeAnnotator.Com
                 default:
                     break;
             }
-
         }
-
-
         return new CompositeAnnotator.CompositeSortedField(clockValue, replicaNum, crfValue);
     }
 

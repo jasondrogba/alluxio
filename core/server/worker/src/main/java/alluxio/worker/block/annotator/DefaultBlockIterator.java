@@ -386,7 +386,7 @@ public class DefaultBlockIterator implements BlockIterator {
       SortedBlockSet sortedSet = mPerDirOrderedSets.get(entry.getValue().getSecond());
       Long blockId = entry.getKey();
       Long increaseValue = entry.getValue().getFirst();
-      LOG.info("updateReplicaInfo " + String.valueOf(blockId) + String.valueOf(increaseValue));
+      LOG.debug("updateReplicaInfo blockId: " + blockId +" increaseValue: " + increaseValue + "");
       // Get new sort-field for the block.
       if (sortedSet.getSortField(blockId) == null) {
         continue;

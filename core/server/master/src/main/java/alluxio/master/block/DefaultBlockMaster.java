@@ -1349,6 +1349,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
         Optional<BlockMeta> block = mBlockMetaStore.getBlock(removedBlockId);
         if (block.isPresent()) {
           LOG.debug("Block {} is removed on worker {}.", removedBlockId, workerInfo.getId());
+          LOG.debug("maintain replica info: {}", mMaintainReplicaInfo);
           if (mMaintainReplicaInfo) {
             for (BlockLocation relatedWorkers : mBlockMetaStore.getLocations(removedBlockId)) {
               MasterWorkerInfo worker =
@@ -1396,6 +1397,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
                 location.getWorkerId(), workerInfo.getId());
             mBlockMetaStore.addLocation(blockId, location);
             mLostBlocks.remove(blockId);
+            LOG.debug("maintain replica info: {}", mMaintainReplicaInfo);
             if (mMaintainReplicaInfo) {
               for (BlockLocation relatedWorkers : mBlockMetaStore.getLocations(blockId)) {
                 MasterWorkerInfo worker =
