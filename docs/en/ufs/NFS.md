@@ -6,8 +6,6 @@ group: Storage Integrations
 priority: 10
 ---
 
-* Table of Contents
-{:toc}
 
 This guide describes the instructions to configure [NFS](http://nfs.sourceforge.net) as Alluxio's under
 storage system.
@@ -29,9 +27,7 @@ details.
 
 ## Initial Setup
 
-The Alluxio binaries must be on your machine. You can either
-[compile Alluxio]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url }}), or
-[download the binaries locally]({{ '/en/deploy/Running-Alluxio-Locally.html' | relativize_url }}).
+The Alluxio binaries must be on your machine. You can [download the binaries locally]({{ '/en/overview/Getting-Started.html' | relativize_url }}).
 
 ## Creating NFS mount point
 
@@ -59,7 +55,7 @@ Assume we have mounted NFS share at `/mnt/nfs` on all Alluxio masters and worker
 
 ```
 alluxio.master.hostname=localhost
-alluxio.master.mount.table.root.ufs=/mnt/nfs
+alluxio.dora.client.ufs.root=/mnt/nfs
 ```
 
 ## Running Alluxio with NFS

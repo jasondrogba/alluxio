@@ -30,7 +30,6 @@ Where ACTION is one of:
   safe                      \tScript will run continuously and start the master if it's not running.
   worker  [MOPT] [-c cache] \tStart a worker on this node.
   workers [MOPT] [-c cache] \tStart workers on worker nodes.
-  logserver                 \tStart the logserver
   restart_worker            \tRestart a failed worker on this node.
   restart_workers           \tRestart any failed workers on worker nodes.
 "
@@ -90,44 +89,6 @@ is_ram_folder_mounted() {
   done
 
   return 1
-}
-
-check_mount_mode() {
-  case $1 in
-    Mount);;
-    SudoMount);;
-    NoMount)
-      local tier_alias=$(${BIN}/alluxio getConf alluxio.worker.tieredstore.level0.alias)
-      local tier_path
-      get_ramdisk_array
-      if [[ ${tier_alias} != "MEM" ]]; then
-        # if the top tier is not MEM, skip check
-        return
-      fi
-      for tier_path in "${RAMDISKARRAY[@]}"
-      do
-        is_ram_folder_mounted "${tier_path}"
-        if [[ $? -ne 0 ]]; then
-          echo "ERROR: Ramdisk ${tier_path} is not mounted with mount option NoMount. Use alluxio-mount.sh to mount ramdisk." >&2
-          echo -e "${USAGE}" >&2
-          exit 1
-        fi
-
-        if [[ "${tier_path}" =~ ^"/dev/shm"\/{0,1}$ ]]; then
-          echo "WARNING: Using tmpFS does not guarantee data to be stored in memory."
-          echo "WARNING: Check vmstat for memory statistics (e.g. swapping)."
-        fi
-      done
-      ;;
-    *)
-      if [[ -z $1 ]]; then
-        echo "This command requires a mount mode be specified" >&2
-      else
-        echo "Invalid mount mode: $1" >&2
-      fi
-      echo -e "${USAGE}" >&2
-      exit 1
-  esac
 }
 
 # pass mode as $1
@@ -197,20 +158,6 @@ start_job_worker() {
 
 start_job_workers() {
   ${LAUNCHER} "${BIN}/alluxio-workers.sh" "${BIN}/alluxio-start.sh" "-a" "job_worker"
-}
-
-start_logserver() {
-    if [[ ! -d "${ALLUXIO_LOGSERVER_LOGS_DIR}" ]]; then
-        echo "ALLUXIO_LOGSERVER_LOGS_DIR: ${ALLUXIO_LOGSERVER_LOGS_DIR}"
-        mkdir -p ${ALLUXIO_LOGSERVER_LOGS_DIR}
-    fi
-
-    echo "Starting logserver @ $(hostname -f)."
-    (ALLUXIO_LOGSERVER_LOGS_DIR="${ALLUXIO_LOGSERVER_LOGS_DIR}" \
-    nohup ${BIN}/launch-process logserver > ${ALLUXIO_LOGS_DIR}/logserver.out 2>&1) &
-    # Wait for 1s before starting other Alluxio servers, otherwise may cause race condition
-    # leading to connection errors.
-    sleep 1
 }
 
 start_master() {
@@ -383,8 +330,6 @@ start_monitor() {
     if [[ -z "${nodes}" ]]; then
       run="false"
     fi
-  elif [[ "${action}" == "logserver" || "${action}" == "safe" ]]; then
-    run="false"
   fi
   if [[ -z "${run}" ]]; then
     ${LAUNCHER} "${BIN}/alluxio-monitor.sh" "${action}" "${nodes}"
@@ -461,9 +406,6 @@ main() {
       else
         shift
       fi
-      if [[ "${ACTION}" = "worker" ]] || [[ "${ACTION}" = "local" ]]; then
-        check_mount_mode "${MOPT}"
-      fi
       ;;
     *)
       MOPT=""
@@ -503,7 +445,7 @@ main() {
 
   if [[ "${killonstart}" != "no" ]]; then
     case "${ACTION}" in
-      all | local | master | masters | secondary_master | job_master | job_masters | proxy | proxies | worker | workers | job_worker | job_workers | logserver)
+      all | local | master | masters | secondary_master | job_master | job_masters | proxy | proxies | worker | workers | job_worker | job_workers )
         stop ${ACTION}
         sleep 1
         ;;
@@ -604,9 +546,6 @@ main() {
       ;;
     workers)
       start_workers "${MOPT}"
-      ;;
-    logserver)
-      start_logserver
       ;;
     *)
     echo "Error: Invalid ACTION: ${ACTION}" >&2

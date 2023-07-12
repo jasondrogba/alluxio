@@ -28,7 +28,7 @@ unless you know what you are doing.
 "
 USAGE+="
     <process name>    One of: master, secondary_master, job_master, worker,
-                      job_worker, proxy, logserver"
+                      job_worker, proxy"
 USAGE+="
 
     -c                Provide this flag to also log directly to stdout
@@ -65,7 +65,6 @@ contains() {
 # - ALLUXIO_WORKER_JAVA_OPTS
 # - ALLUXIO_JOB_WORKER_JAVA_OPTS
 # - ALLUXIO_PROXY_JAVA_OPTS
-# - ALLUXIO_LOGSERVER_JAVA_OPTS
 
 # If any of these variables are not set after running this function, then the
 # rest of this script may not function properly.
@@ -125,7 +124,7 @@ launch_master() {
   fi
 
   # use a default Xmx value for the master
-  local contain_xmx="$(contains "${ALLUXIO_MASTER_JAVA_OPTS}")"
+  local contain_xmx="$(contains "${ALLUXIO_MASTER_JAVA_OPTS}" "Xmx")"
   local contain_max_percentage="$(contains "${ALLUXIO_MASTER_JAVA_OPTS}" "MaxRAMPercentage")"
   if [[ "${contain_xmx}" -eq "0" ]] && [[ "${contain_max_percentage}" -eq "0" ]]; then
     ALLUXIO_MASTER_JAVA_OPTS+=" -Xmx8g "
@@ -144,7 +143,7 @@ launch_master() {
 # Launch a secondary master process
 launch_secondary_master() {
   # use a default Xmx value for the master
-  local contain_xmx="$(contains "${ALLUXIO_SECONDARY_MASTER_JAVA_OPTS}")"
+  local contain_xmx="$(contains "${ALLUXIO_SECONDARY_MASTER_JAVA_OPTS}" "Xmx")"
   local contain_max_percentage="$(contains "${ALLUXIO_SECONDARY_MASTER_JAVA_OPTS}" "MaxRAMPercentage")"
   if [[ "${contain_xmx}" -eq "0" ]] && [[ "${contain_max_percentage}" -eq "0" ]]; then
     ALLUXIO_SECONDARY_MASTER_JAVA_OPTS+=" -Xmx8g "
@@ -164,7 +163,7 @@ launch_job_master() {
 # Launch a worker process
 launch_worker() {
   # use a default Xmx value for the worker
-  local contain_xmx="$(contains "${ALLUXIO_WORKER_JAVA_OPTS}")"
+  local contain_xmx="$(contains "${ALLUXIO_WORKER_JAVA_OPTS}" "Xmx")"
   local contain_max_percentage="$(contains "${ALLUXIO_WORKER_JAVA_OPTS}" "MaxRAMPercentage")"
   if [[ "${contain_xmx}" -eq "0" ]] && [[ "${contain_max_percentage}" -eq "0" ]]; then
     ALLUXIO_WORKER_JAVA_OPTS+=" -Xmx4g "
@@ -193,19 +192,6 @@ launch_proxy() {
   launch_process "${ALLUXIO_PROXY_ATTACH_OPTS}" \
                  "${ALLUXIO_PROXY_JAVA_OPTS}" \
                  "alluxio.proxy.AlluxioProxy"
-}
-
-# Launch a logserver process
-#
-# Environment Variables:
-#     ALLUXIO_LOGSERVER_LOGS_DIR: This is a mandatory variable. The
-#                                 directory where the logserver will
-#                                 store logs.
-launch_logserver() {
-  launch_process "${ALLUXIO_LOGSERVER_ATTACH_OPTS}" \
-                 "${ALLUXIO_LOGSERVER_JAVA_OPTS}" \
-                 "alluxio.logserver.AlluxioLogServer" \
-                 "${ALLUXIO_LOGSERVER_LOGS_DIR}"
 }
 
 # Launch the desired process
@@ -257,10 +243,6 @@ main() {
       logger_var_name="ALLUXIO_JOB_WORKER_LOGGER"
       logger_var_value="JOB_WORKER_LOGGER"
       ;;
-    logserver)
-      logger_var_name="ALLUXIO_LOGSERVER_LOGGER"
-      logger_var_value="LOGSERVER_LOGGER"
-      ;;
     proxy)
       logger_var_name="ALLUXIO_PROXY_LOGGER"
       logger_var_value="PROXY_LOGGER"
@@ -297,9 +279,6 @@ main() {
       ;;
     job_worker)
       launch_job_worker
-      ;;
-    logserver)
-      launch_logserver
       ;;
     proxy)
       launch_proxy
