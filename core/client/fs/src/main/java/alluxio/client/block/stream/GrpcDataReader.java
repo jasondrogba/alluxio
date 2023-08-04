@@ -131,6 +131,14 @@ public final class GrpcDataReader implements DataReader {
         return readChunkInternal();
       }
     }
+    //TODO(Jiasen): 返回read chunk
+    // no metrics,返回
+//    if (mDetailedMetricsEnabled) {
+//      try (Timer.Context ignored = MetricsSystem
+//              .counter(MetricKey.CLIENT_BLOCK_READ_CHUNK_REMOTE.getName()).time()) {
+//        return readChunkInternal();
+//      }
+//    }
     return readChunkInternal();
   }
 

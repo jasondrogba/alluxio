@@ -384,6 +384,8 @@ public class BaseFileSystem implements FileSystem {
       throws FileDoesNotExistException, OpenDirectoryException, FileIncompleteException,
       IOException, AlluxioException {
     AlluxioURI path = new AlluxioURI(status.getPath());
+    //TODO(Jiasen): collect the frequent of path
+
     if (status.isFolder()) {
       throw new OpenDirectoryException(path);
     }

@@ -121,6 +121,9 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
 
   private WorkerNetAddress mAddress;
 
+  public final BlockFrequencyCollector mBlockFrequencyCollector = new BlockFrequencyCollector();
+
+
   /**
    * Constructs a default block worker.
    *
@@ -423,6 +426,11 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
     BlockReader reader =
         mBlockStore.createBlockReader(sessionId, blockId, offset, positionShort, options);
     Metrics.WORKER_ACTIVE_CLIENTS.inc();
+
+    //TODO(Jiasen): add BlockFrequencyCollector
+    //collect Block frequency from remote and UFS
+      mBlockFrequencyCollector.collectBlockAccess(blockId);
+
     return reader;
   }
 

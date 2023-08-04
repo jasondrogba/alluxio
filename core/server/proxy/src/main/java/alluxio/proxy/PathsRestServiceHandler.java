@@ -328,6 +328,7 @@ public final class PathsRestServiceHandler {
       @Override
       public Integer call() throws Exception {
         FileInStream is;
+
         if (options == null) {
           is = mFileSystem.openFile(new AlluxioURI(path));
         } else {

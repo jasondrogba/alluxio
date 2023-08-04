@@ -22,10 +22,7 @@ import alluxio.grpc.OpenLocalBlockRequest;
 import alluxio.grpc.OpenLocalBlockResponse;
 import alluxio.util.IdUtils;
 import alluxio.util.LogUtils;
-import alluxio.worker.block.AllocateOptions;
-import alluxio.worker.block.BlockStore;
-import alluxio.worker.block.BlockStoreLocation;
-import alluxio.worker.block.DefaultBlockWorker;
+import alluxio.worker.block.*;
 import alluxio.worker.block.meta.BlockMeta;
 
 import io.grpc.stub.StreamObserver;
@@ -51,6 +48,8 @@ class ShortCircuitBlockReadHandler implements StreamObserver<OpenLocalBlockReque
   /** The lock id of the block being read. */
   private OptionalLong mLockId;
   private long mSessionId;
+  public final BlockFrequencyCollector mBlockFrequencyCollector = new BlockFrequencyCollector();
+
 
   /**
    * Creates an instance of {@link ShortCircuitBlockReadHandler}.
@@ -104,6 +103,10 @@ class ShortCircuitBlockReadHandler implements StreamObserver<OpenLocalBlockReque
         mLockId = mLocalBlockStore.pinBlock(mSessionId, mRequest.getBlockId());
         mLocalBlockStore.accessBlock(mSessionId, mRequest.getBlockId());
         DefaultBlockWorker.Metrics.WORKER_ACTIVE_CLIENTS.inc();
+
+        //collect Block frequency from short circuit
+        mBlockFrequencyCollector.collectBlockAccess(mRequest.getBlockId());
+
         return OpenLocalBlockResponse.newBuilder()
             .setPath(meta.get().getPath())
             .build();
