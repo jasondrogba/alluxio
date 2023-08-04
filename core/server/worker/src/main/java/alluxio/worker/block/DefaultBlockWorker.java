@@ -425,7 +425,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
       throws IOException {
     BlockReader reader =
         mBlockStore.createBlockReader(sessionId, blockId, offset, positionShort, options);
-    Metrics.WORKER_ACTIVE_CLIENTS.inc();
+//    Metrics.WORKER_ACTIVE_CLIENTS.inc();
 
     //TODO(Jiasen): add BlockFrequencyCollector
     //collect Block frequency from remote and UFS

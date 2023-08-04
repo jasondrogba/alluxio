@@ -3738,8 +3738,8 @@ public class DefaultFileSystemMaster extends CoreMaster
           PropertyKey.MASTER_REPLICATION_CHECK_INTERVAL_MS);
       mReplicationCheckHeartbeatThread.updateIntervalMs(
           newValue);
-      LOG.info("The interval of {} updated to {}",
-          HeartbeatContext.MASTER_REPLICATION_CHECK, newValue);
+//      LOG.info("The interval of {} updated to {}",
+//          HeartbeatContext.MASTER_REPLICATION_CHECK, newValue);
     }
   }
 
