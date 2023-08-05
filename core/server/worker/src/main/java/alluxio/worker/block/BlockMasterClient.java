@@ -203,7 +203,7 @@ public class BlockMasterClient extends AbstractMasterClient {
   public synchronized HeartBeatResponseMessage heartbeat(final long workerId,
       final Map<String, Long> capacityBytesOnTiers, final Map<String, Long> usedBytesOnTiers,
       final List<Long> removedBlocks, final Map<BlockStoreLocation, List<Long>> addedBlocks,
-      final Map<String, List<String>> lostStorage, final List<Metric> metrics)
+      final Map<String, List<String>> lostStorage, final List<Metric> metrics, final Map<Long,Long> blockFrequency)
       throws IOException {
     final BlockHeartbeatPOptions options = BlockHeartbeatPOptions.newBuilder()
         .addAllMetrics(metrics).putAllCapacityBytesOnTiers(capacityBytesOnTiers).build();
@@ -216,6 +216,7 @@ public class BlockMasterClient extends AbstractMasterClient {
 
     final BlockHeartbeatPRequest request = BlockHeartbeatPRequest.newBuilder().setWorkerId(workerId)
         .putAllUsedBytesOnTiers(usedBytesOnTiers).addAllRemovedBlockIds(removedBlocks)
+            .putAllBlockFrequency(blockFrequency)
         .addAllAddedBlocks(entryList).setOptions(options)
         .putAllLostStorage(lostStorageMap).build();
 

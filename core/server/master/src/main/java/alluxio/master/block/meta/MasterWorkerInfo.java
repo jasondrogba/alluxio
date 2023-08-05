@@ -38,6 +38,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -152,6 +153,8 @@ public final class MasterWorkerInfo {
   /** Storage the Replica Changes for the block. Key: block id , Value: Changed replica number.*/
   @GuardedBy("mReplicaInfoLock")
   private final Map<Long, Short> mReplicaNum;
+
+  private final Map<Long, Integer> mBlockFrequency;
   boolean mRequiredSyncReplica;
 
   private final Lock mReplicaInfoLock = new ReentrantLock();
@@ -178,6 +181,7 @@ public final class MasterWorkerInfo {
         WorkerMetaLockSection.USAGE, mUsageLock,
         WorkerMetaLockSection.BLOCKS, mBlockListLock);
     mReplicaNum = new HashMap<>();
+    mBlockFrequency = new ConcurrentHashMap<>();
   }
 
   /**

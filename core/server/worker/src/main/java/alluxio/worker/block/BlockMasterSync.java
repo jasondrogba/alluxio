@@ -178,17 +178,18 @@ public final class BlockMasterSync implements HeartbeatExecutor {
     // Send the heartbeat and execute the response
     Command cmdFromMaster = null;
     List<alluxio.grpc.Metric> metrics = MetricsSystem.reportWorkerMetrics();
-
     try {
       HeartBeatResponseMessage heartbeatReturn = mMasterClient.heartbeat(mWorkerId.get(),
               storeMeta.getCapacityBytesOnTiers(),
               storeMeta.getUsedBytesOnTiers(), blockReport.getRemovedBlocks(),
-              blockReport.getAddedBlocks(), blockReport.getLostStorage(), metrics);
+              blockReport.getAddedBlocks(), blockReport.getLostStorage(), metrics,
+              BlockFrequencyCollector.getBlockFrequencyMap());
       cmdFromMaster = heartbeatReturn.getCommand();
       handleMasterCommand(heartbeatReturn.getCommand());
       handleMasterReplicaChange(heartbeatReturn.getReplicaInfo());
       handleMasterCompositeRatioChange(heartbeatReturn.getCompositeRatio());
       handleMasterDynamicSortChange(heartbeatReturn.getDynamicSort());
+
       mLastSuccessfulHeartbeatMs = System.currentTimeMillis();
     } catch (IOException | ConnectionFailedException e) {
       // An error occurred, log and ignore it or error if heartbeat timeout is reached

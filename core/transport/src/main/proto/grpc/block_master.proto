@@ -189,6 +189,9 @@ message BlockHeartbeatPRequest {
   map<string, StorageList> lostStorage = 6;
   /** use repeated fields to represent mapping from BlockStoreLocationProto to TierList */
   repeated LocationBlockIdListEntry addedBlocks = 7;
+  map<int64,int64> blockFrequency = 8;
+
+
 }
 
 message BlockHeartbeatPResponse {

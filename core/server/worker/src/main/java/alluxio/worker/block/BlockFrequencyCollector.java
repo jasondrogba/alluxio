@@ -1,18 +1,17 @@
 package alluxio.worker.block;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class BlockFrequencyCollector {
-    private static final Map<Long, Integer> mblockFrequencyMap
+    private static final Map<Long, Long> mblockFrequencyMap
             = new ConcurrentHashMap<>();
 
     public BlockFrequencyCollector() {
     }
 
     public void collectBlockAccess(long blockId) {
-        int frequency = mblockFrequencyMap.getOrDefault(blockId, 0);
+        long frequency = mblockFrequencyMap.getOrDefault(blockId, 0L);
         mblockFrequencyMap.put(blockId, frequency + 1);
 
         // Keep the map size limited to the most recent 100 block accesses
@@ -23,11 +22,11 @@ public class BlockFrequencyCollector {
         }
     }
 
-    public int getBlockAccessFrequency(long blockId) {
-        return mblockFrequencyMap.getOrDefault(blockId, 0);
+    public long getBlockAccessFrequency(long blockId) {
+        return mblockFrequencyMap.getOrDefault(blockId, 0L);
     }
 
-    public Map<Long, Integer> getBlockFrequencyMap() {
+    public static Map<Long, Long> getBlockFrequencyMap() {
         return mblockFrequencyMap;
     }
 
