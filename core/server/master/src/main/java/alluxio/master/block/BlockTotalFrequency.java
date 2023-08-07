@@ -17,6 +17,7 @@ public class BlockTotalFrequency {
             long frequency = entry.getValue();
             long totalFrequency = mBlockFrequencyMap.getOrDefault(blockId, 0L);
             mBlockFrequencyMap.put(blockId, totalFrequency + frequency);
+
             // Keep the map size limited to the most recent 100 block accesses
             if (mBlockFrequencyMap.size() > 100) {
                 // You can choose to remove the least recently accessed block or based on some other criteria
@@ -62,7 +63,7 @@ public class BlockTotalFrequency {
         long powerSum=0;
 
         for (Map.Entry<Long, Long> entry : blockFrequencyMap.entrySet()) {
-            sumPower += Math.pow(entry.getValue(),2);
+            sumPower += (long) Math.pow(entry.getValue(),2);
             powerSum += entry.getValue();
         }
         powerSum = (long)Math.pow(powerSum,2);

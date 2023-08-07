@@ -271,7 +271,8 @@ public final class ReplicationCheckerTest {
 
     mBlockMaster.workerHeartbeat(workerId, null,
         ImmutableMap.of(Constants.MEDIUM_MEM, 0L), NO_BLOCKS,
-        ImmutableMap.of(blockLocation, addedBlocks), NO_LOST_STORAGE, NO_METRICS);
+        ImmutableMap.of(blockLocation, addedBlocks), NO_LOST_STORAGE, NO_METRICS,
+            ImmutableMap.of());
   }
 
   @Test
@@ -375,7 +376,8 @@ public final class ReplicationCheckerTest {
     // Indicate that blockId is removed on the worker.
     mBlockMaster.workerHeartbeat(workerId, null,
         ImmutableMap.of(Constants.MEDIUM_MEM, 0L),
-        ImmutableList.of(blockId), NO_BLOCKS_ON_LOCATION, NO_LOST_STORAGE, NO_METRICS);
+        ImmutableList.of(blockId), NO_BLOCKS_ON_LOCATION, NO_LOST_STORAGE, NO_METRICS,
+            ImmutableMap.of());
 
     mReplicationChecker.heartbeat();
     Assert.assertEquals(EMPTY, mMockReplicationHandler.getSetReplicaRequests());

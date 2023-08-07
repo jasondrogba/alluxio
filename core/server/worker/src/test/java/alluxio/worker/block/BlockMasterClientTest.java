@@ -264,7 +264,7 @@ public class BlockMasterClientTest {
         ImmutableList.of("/tmp/lost")
     );
     final List<Metric> metrics = ImmutableList.of();
-
+    final Map<Long,Long> frequencyMap = ImmutableMap.of(1234567L, 10L);
     createMockService(
         new BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceImplBase() {
           @Override
@@ -316,7 +316,7 @@ public class BlockMasterClientTest {
         removedBlocks,
         addedBlocks,
         lostStorage,
-        metrics).getCommand().getCommandType());
+        metrics,frequencyMap).getCommand().getCommandType());
   }
 
   @Test

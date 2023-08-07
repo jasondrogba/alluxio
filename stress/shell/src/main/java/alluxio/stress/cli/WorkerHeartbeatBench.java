@@ -51,7 +51,7 @@ public class WorkerHeartbeatBench extends RpcBench<BlockMasterBenchParameters> {
   // Constants used for the RPC simulation
   private static final List<Metric> EMPTY_METRICS = ImmutableList.of();
   private static final List<Long> EMPTY_REMOVED_BLOCKS = ImmutableList.of();
-
+  private  static final Map<Long,Long> EMPTY_FREQUENCY_BLOCKS = ImmutableMap.of();
   @ParametersDelegate
   private final BlockMasterBenchParameters mParameters = new BlockMasterBenchParameters();
 
@@ -115,7 +115,8 @@ public class WorkerHeartbeatBench extends RpcBench<BlockMasterBenchParameters> {
             // So an empty map will be used here
             ImmutableMap.of(),
             LOST_STORAGE,
-            EMPTY_METRICS).getCommand();
+            EMPTY_METRICS,
+                EMPTY_FREQUENCY_BLOCKS).getCommand();
         LOG.debug("Received command from heartbeat {}", cmd);
         Instant e = Instant.now();
         Duration d = Duration.between(s, e);

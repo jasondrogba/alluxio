@@ -704,7 +704,8 @@ public class DefaultBlockWorkerTest {
             anyList(),
             anyMap(),
             anyMap(),
-            anyList()
+            anyList(),
+                anyMap()
         );
     return client;
   }

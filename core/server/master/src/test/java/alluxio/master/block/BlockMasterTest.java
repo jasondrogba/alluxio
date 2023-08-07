@@ -88,6 +88,8 @@ public class BlockMasterTest {
   private MetricsMaster mMetricsMaster;
   private List<Metric> mMetrics;
 
+  private  static final Map<Long,Long> mFrequncyMap = ImmutableMap.of();
+
   /** Rule to create a new temporary folder during each test. */
   @Rule
   public TemporaryFolder mTestFolder = new TemporaryFolder();
@@ -230,7 +232,7 @@ public class BlockMasterTest {
     // Check that the worker heartbeat tells the worker to remove the block.
     Map<String, Long> memUsage = ImmutableMap.of(Constants.MEDIUM_MEM, 0L);
     alluxio.grpc.Command heartBeat = mBlockMaster.workerHeartbeat(worker1, null, memUsage,
-        NO_BLOCKS, NO_BLOCKS_ON_LOCATION, NO_LOST_STORAGE, mMetrics).getCommand();
+        NO_BLOCKS, NO_BLOCKS_ON_LOCATION, NO_LOST_STORAGE, mMetrics,mFrequncyMap).getCommand();
     assertEquals(ImmutableList.of(1L), heartBeat.getDataList());
   }
 
@@ -251,7 +253,7 @@ public class BlockMasterTest {
 
     // Check that the worker heartbeat tells the worker to remove the blocks.
     alluxio.grpc.Command heartBeat = mBlockMaster.workerHeartbeat(workerId, null,
-        memUsage, NO_BLOCKS, NO_BLOCKS_ON_LOCATION, NO_LOST_STORAGE, mMetrics).getCommand();
+        memUsage, NO_BLOCKS, NO_BLOCKS_ON_LOCATION, NO_LOST_STORAGE, mMetrics,mFrequncyMap).getCommand();
     assertEquals(orphanedBlocks, heartBeat.getDataList());
   }
 
@@ -268,7 +270,7 @@ public class BlockMasterTest {
     // Update used bytes with a worker heartbeat.
     Map<String, Long> newUsedBytesOnTiers = ImmutableMap.of(Constants.MEDIUM_MEM, 50L);
     mBlockMaster.workerHeartbeat(worker, null, newUsedBytesOnTiers,
-        NO_BLOCKS, NO_BLOCKS_ON_LOCATION, NO_LOST_STORAGE, mMetrics);
+        NO_BLOCKS, NO_BLOCKS_ON_LOCATION, NO_LOST_STORAGE, mMetrics,mFrequncyMap);
 
     WorkerInfo workerInfo = Iterables.getOnlyElement(mBlockMaster.getWorkerInfoList());
     assertEquals(50, workerInfo.getUsedBytes());
@@ -289,7 +291,7 @@ public class BlockMasterTest {
     // Indicate that blockId is removed on the worker.
     mBlockMaster.workerHeartbeat(worker, null,
         ImmutableMap.of(Constants.MEDIUM_MEM, 0L),
-        ImmutableList.of(blockId), NO_BLOCKS_ON_LOCATION, NO_LOST_STORAGE, mMetrics);
+        ImmutableList.of(blockId), NO_BLOCKS_ON_LOCATION, NO_LOST_STORAGE, mMetrics,mFrequncyMap);
     assertTrue(mBlockMaster.getBlockInfo(blockId).getLocations().isEmpty());
   }
 
@@ -320,7 +322,7 @@ public class BlockMasterTest {
     mBlockMaster.workerHeartbeat(worker2, null,
         ImmutableMap.of(Constants.MEDIUM_MEM, 0L), NO_BLOCKS,
         ImmutableMap.of(blockOnWorker2, addedBlocks),
-        NO_LOST_STORAGE, mMetrics);
+        NO_LOST_STORAGE, mMetrics,mFrequncyMap);
 
     // The block now has two locations.
     assertEquals(2, mBlockMaster.getBlockInfo(blockId).getLocations().size());
@@ -352,11 +354,11 @@ public class BlockMasterTest {
     mBlockMaster.workerHeartbeat(worker1,
         ImmutableMap.of(Constants.MEDIUM_MEM, 100L, Constants.MEDIUM_SSD, 0L),
         ImmutableMap.of(Constants.MEDIUM_MEM, 0L, Constants.MEDIUM_SSD, 0L), NO_BLOCKS,
-        NO_BLOCKS_ON_LOCATION, lostStorageOnWorker1, mMetrics);
+        NO_BLOCKS_ON_LOCATION, lostStorageOnWorker1, mMetrics,mFrequncyMap);
     mBlockMaster.workerHeartbeat(worker2,
         ImmutableMap.of(Constants.MEDIUM_MEM, 100L, Constants.MEDIUM_HDD, 200L),
         ImmutableMap.of(Constants.MEDIUM_MEM, 0L, Constants.MEDIUM_HDD, 0L), NO_BLOCKS,
-        NO_BLOCKS_ON_LOCATION, lostStorageOnWorker2, mMetrics);
+        NO_BLOCKS_ON_LOCATION, lostStorageOnWorker2, mMetrics,mFrequncyMap);
 
     // Two workers have lost storage paths
     assertEquals(2, mBlockMaster.getWorkerLostStorage().size());
@@ -416,7 +418,7 @@ public class BlockMasterTest {
     Map<Long, Long> worker1Info = mBlockMaster.workerHeartbeat(worker1, null,
             ImmutableMap.of(Constants.MEDIUM_MEM, 0L), NO_BLOCKS,
             NO_BLOCKS_ON_LOCATION,
-            NO_LOST_STORAGE, mMetrics).getReplicaInfo();
+            NO_LOST_STORAGE, mMetrics,mFrequncyMap).getReplicaInfo();
     //worker1 heartbeat
     assertEquals(ImmutableMap.copyOf(worker1Info), ImmutableMap.of(blockId1, 1L));
 
@@ -425,14 +427,14 @@ public class BlockMasterTest {
     Map<Long, Long> worker2Info = mBlockMaster.workerHeartbeat(worker2, null,
             ImmutableMap.of(Constants.MEDIUM_MEM, 0L), NO_BLOCKS,
             ImmutableMap.of(blockOnWorker2, addedBlocks),
-            NO_LOST_STORAGE, mMetrics).getReplicaInfo();
+            NO_LOST_STORAGE, mMetrics,mFrequncyMap).getReplicaInfo();
     assertEquals(ImmutableMap.copyOf(worker2Info), ImmutableMap.of(blockId1, 2L));
 
     //worker1 heartbeat
     Map<Long, Long> worker1Info2 = mBlockMaster.workerHeartbeat(worker1, null,
             ImmutableMap.of(Constants.MEDIUM_MEM, 0L), NO_BLOCKS,
             NO_BLOCKS_ON_LOCATION,
-            NO_LOST_STORAGE, mMetrics).getReplicaInfo();
+            NO_LOST_STORAGE, mMetrics,mFrequncyMap).getReplicaInfo();
     assertEquals(ImmutableMap.copyOf(worker1Info2), ImmutableMap.of(blockId1, 1L));
 
     //block2 commit by worker2 and worker2 heartbeat
@@ -441,7 +443,7 @@ public class BlockMasterTest {
     Map<Long, Long> worker2Info2 = mBlockMaster.workerHeartbeat(worker2, null,
             ImmutableMap.of(Constants.MEDIUM_MEM, 0L), NO_BLOCKS,
             NO_BLOCKS_ON_LOCATION,
-            NO_LOST_STORAGE, mMetrics).getReplicaInfo();
+            NO_LOST_STORAGE, mMetrics,mFrequncyMap).getReplicaInfo();
     assertEquals(ImmutableMap.copyOf(worker2Info2), ImmutableMap.of(blockId2, 1L));
 
     //worker3 add block1 and block2 and heartbeat
@@ -449,7 +451,7 @@ public class BlockMasterTest {
     Map<Long, Long> worker3Info = mBlockMaster.workerHeartbeat(worker3, null,
             ImmutableMap.of(Constants.MEDIUM_MEM, 0L), NO_BLOCKS,
             ImmutableMap.of(blockOnWorker3, addedBlocks),
-            NO_LOST_STORAGE, mMetrics).getReplicaInfo();
+            NO_LOST_STORAGE, mMetrics,mFrequncyMap).getReplicaInfo();
     assertEquals(ImmutableMap.copyOf(worker3Info),
         ImmutableMap.of(blockId1, 3L, blockId2, 2L, blockId3, 1L));
 
@@ -457,28 +459,28 @@ public class BlockMasterTest {
     Map<Long, Long> worker2Info3 = mBlockMaster.workerHeartbeat(worker2, null,
             ImmutableMap.of(Constants.MEDIUM_MEM, 0L), ImmutableList.of(blockId1),
             NO_BLOCKS_ON_LOCATION,
-            NO_LOST_STORAGE, mMetrics).getReplicaInfo();
+            NO_LOST_STORAGE, mMetrics,mFrequncyMap).getReplicaInfo();
     assertEquals(ImmutableMap.copyOf(worker2Info3), ImmutableMap.of(blockId2, 1L));
 
     //worker1 delete block1 and heartbeat
     Map<Long, Long> worker1Info3 = mBlockMaster.workerHeartbeat(worker1, null,
             ImmutableMap.of(Constants.MEDIUM_MEM, 0L), ImmutableList.of(blockId1),
             NO_BLOCKS_ON_LOCATION,
-            NO_LOST_STORAGE, mMetrics).getReplicaInfo();
+            NO_LOST_STORAGE, mMetrics,mFrequncyMap).getReplicaInfo();
     assertEquals(ImmutableMap.copyOf(worker1Info3), ImmutableMap.of(blockId1, -1L));
 
     //worker2 add block1 and heartbeat
     Map<Long, Long> worker2Info4 = mBlockMaster.workerHeartbeat(worker2, null,
             ImmutableMap.of(Constants.MEDIUM_MEM, 0L), NO_BLOCKS,
             ImmutableMap.of(blockOnWorker2, ImmutableList.of(blockId1)),
-            NO_LOST_STORAGE, mMetrics).getReplicaInfo();
+            NO_LOST_STORAGE, mMetrics,mFrequncyMap).getReplicaInfo();
     assertEquals(ImmutableMap.copyOf(worker2Info4), ImmutableMap.of(blockId1, 2L));
   }
 
   @Test
   public void unknownWorkerHeartbeatTriggersRegisterRequest() {
     Command heartBeat =
-        mBlockMaster.workerHeartbeat(0, null, null, null, null, null, mMetrics).getCommand();
+        mBlockMaster.workerHeartbeat(0, null, null, null, null, null, mMetrics,null).getCommand();
     assertEquals(Command.newBuilder().setCommandType(CommandType.Register).build(), heartBeat);
   }
 

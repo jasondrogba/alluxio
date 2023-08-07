@@ -14,6 +14,9 @@ package alluxio.master.block.meta;
 import alluxio.Constants;
 import alluxio.StorageTierAssoc;
 import alluxio.client.block.options.GetWorkerReportOptions.WorkerInfoField;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.Source;
 import alluxio.grpc.StorageList;
 import alluxio.master.block.DefaultBlockMaster;
 import alluxio.master.metastore.BlockMetaStore;
@@ -154,8 +157,13 @@ public final class MasterWorkerInfo {
   @GuardedBy("mReplicaInfoLock")
   private final Map<Long, Short> mReplicaNum;
 
-  private final Map<Long, Integer> mBlockFrequency;
+  @GuardedBy("mFrequencyLock")
+  private final Map<Long, Long> mBlockFrequency;
+  private final Lock mFrequencyLock = new ReentrantLock();
+@GuardedBy("mFrequencyLock")
+  private long mTotalFrequency;
   boolean mRequiredSyncReplica;
+
 
   private final Lock mReplicaInfoLock = new ReentrantLock();
 
@@ -182,6 +190,8 @@ public final class MasterWorkerInfo {
         WorkerMetaLockSection.BLOCKS, mBlockListLock);
     mReplicaNum = new HashMap<>();
     mBlockFrequency = new ConcurrentHashMap<>();
+    mTotalFrequency = 0;
+
   }
 
   /**
@@ -680,6 +690,10 @@ public final class MasterWorkerInfo {
     return new LockResource(mReplicaInfoLock);
   }
 
+  LockResource lockFrequencyMapBlock(){
+    return  new LockResource(mFrequencyLock);
+  }
+
   /**
    * @param blockId the id of the block whose replica number is changed
    * @param AddedNum the changed value
@@ -736,6 +750,70 @@ public final class MasterWorkerInfo {
     }
     return retReplicaNum;
   }
+
+  /**
+   * @param frequencyMap the block map received from workers
+   * Update the total block frequency map in master.
+   * when frequency
+   */
+  public void updateFrequencyMap(Map<Long,Long> frequencyMap) {
+    try (LockResource r = lockFrequencyMapBlock()){
+      for (Map.Entry<Long, Long> entry : frequencyMap.entrySet()) {
+        long blockId = entry.getKey();
+        long frequency = entry.getValue();
+        mTotalFrequency += frequency;
+        long totalFrequency = mBlockFrequency.getOrDefault(blockId, 0L);
+        mBlockFrequency.put(blockId, totalFrequency + frequency);
+        // Keep the map size limited to the most recent 100 block accesses
+        if (mTotalFrequency >= 400) {
+          // You can choose to remove the least recently accessed block or based on some other criteria
+          // For simplicity, we remove the first entry here (not necessarily the least recently accessed)
+//        mBlockFrequency.remove(frequencyMap.keySet().iterator().next())
+          calculateFairnessIndex();
+          mBlockFrequency.clear();
+          mTotalFrequency = 0;
+        }
+      }
+    }
+
+    LOG.info("total Frequency: {}",mTotalFrequency);
+    LOG.info("block frequency Map: {}",mBlockFrequency);
+
+  }
+
+  private void calculateFairnessIndex(){
+    long sumOfValues = 0;
+    long sumOfSquaredValues = 0;
+
+    for (Map.Entry<Long, Long> entry : mBlockFrequency.entrySet()) {
+      long value = entry.getValue();
+      sumOfValues += value;
+      sumOfSquaredValues += value * value;
+    }
+    long sumSquared = sumOfValues * sumOfValues;
+    double fairnessIndex = ((double) sumSquared) / (sumOfSquaredValues * mBlockFrequency.size());
+
+    PropertyKey key = PropertyKey.WORKER_BLOCK_ANNOTATOR_DYNAMIC_SORT;
+    String policy = Configuration.getString(key);
+
+    if (fairnessIndex > 0.7 && !policy.equals("REPLICA")){
+      LOG.info("fairnessIndex :{}, AI ,change policy {} to REPLICA",fairnessIndex,policy);
+
+      if (Configuration.getBoolean(PropertyKey.CONF_DYNAMIC_UPDATE_ENABLED)
+              && key.isDynamic()) {
+      Configuration.set(key,"REPLICA",Source.RUNTIME);
+      }
+    } else if (fairnessIndex <= 0.7 && !policy.equals("LRU") ) {
+      LOG.info("fairnessIndex :{}, DA ,change policy {} to LRU",fairnessIndex,policy);
+
+      if (Configuration.getBoolean(PropertyKey.CONF_DYNAMIC_UPDATE_ENABLED)
+              && key.isDynamic()) {
+        Configuration.set(key,"LRU",Source.RUNTIME);
+      }
+    }
+
+  }
+
 
   /**
    * Marks all the blocks on the worker to be removed.

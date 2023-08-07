@@ -1266,7 +1266,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
       long workerId, Map<String, Long> capacityBytesOnTiers,
       Map<String, Long> usedBytesOnTiers, List<Long> removedBlockIds,
       Map<BlockLocation, List<Long>> addedBlocks, Map<String, StorageList> lostStorage,
-      List<Metric> metrics) {
+      List<Metric> metrics,Map<Long,Long> frequencyMap) {
     MasterWorkerInfo worker = mWorkers.getFirstByField(ID_INDEX, workerId);
     if (worker == null) {
       LOG.warn("Could not find worker id: {} for heartbeat.", workerId);
@@ -1281,7 +1281,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 
     // The address is final, no need for locking
     processWorkerMetrics(worker.getWorkerAddress().getHost(), metrics);
-
+    processWorkerFrequencyBlocks(worker,frequencyMap);
     Command workerCommand = null;
     Map<java.lang.Long, java.lang.Long> mworkerReplicaInfo = new HashMap<>();
     double mWorkerCompositeRatio = Configuration.getDouble(PropertyKey.WORKER_BLOCK_ANNOTATOR_COMPOSITE_RATIO);
@@ -1370,6 +1370,16 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
         }
       }
     }
+  }
+
+  private void processWorkerFrequencyBlocks(MasterWorkerInfo workerInfo,
+                                            Map<Long,Long> frequencyMap) {
+    LOG.debug("Frequency Map info: {}", mMaintainReplicaInfo);
+
+    if (!frequencyMap.isEmpty()) {
+      workerInfo.updateFrequencyMap(frequencyMap);
+    }
+
   }
 
   /**

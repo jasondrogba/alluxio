@@ -471,6 +471,14 @@
                   "name": "lostStorage",
                   "type": "StorageList"
                 }
+              },
+              {
+                "key_type": "int64",
+                "field": {
+                  "id": 8,
+                  "name": "blockFrequency",
+                  "type": "int64"
+                }
               }
             ]
           },

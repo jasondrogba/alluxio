@@ -92,7 +92,7 @@ public final class BlockMasterWorkerServiceHandler extends
 
     HeartBeatResponseMessage mheartBeatSendInfo = mBlockMaster.workerHeartbeat(workerId,
         capacityBytesOnTiers, usedBytesOnTiers, removedBlockIds, addedBlocksMap,
-        lostStorageMap, metrics);
+        lostStorageMap, metrics,blockFrequency);
     RpcUtils.call(LOG, () ->
         BlockHeartbeatPResponse.newBuilder().setCommand(mheartBeatSendInfo.getCommand())
           .putAllReplicaInfo(mheartBeatSendInfo.getReplicaInfo()).setCompositeRatio(

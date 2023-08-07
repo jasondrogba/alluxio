@@ -254,7 +254,7 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
       Map<String, Long> usedBytesOnTiers, List<Long> removedBlockIds,
       Map<Block.BlockLocation, List<Long>> addedBlocks,
       Map<String, StorageList> lostStorage,
-      List<Metric> metrics);
+      List<Metric> metrics,Map<Long,Long> frequencyMap);
 
   /**
    * @param blockId the block ID

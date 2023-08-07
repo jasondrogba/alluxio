@@ -42,6 +42,7 @@ import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.io.PathUtils;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import org.junit.After;
 import org.junit.Assume;
@@ -313,11 +314,13 @@ public class MasterFaultToleranceIntegrationTest extends BaseIntegrationTest {
       assertEquals(CommandType.Nothing,
           blockMaster1.workerHeartbeat(workerId1a, null, Collections.EMPTY_MAP,
               Collections.EMPTY_LIST, Collections.EMPTY_MAP, Collections.EMPTY_MAP,
-              Lists.newArrayList()).getCommand().getCommandType());
+              Lists.newArrayList(),
+                  ImmutableMap.of()).getCommand().getCommandType());
       assertEquals(CommandType.Nothing,
           blockMaster1.workerHeartbeat(workerId2a, null, Collections.EMPTY_MAP,
               Collections.EMPTY_LIST, Collections.EMPTY_MAP, Collections.EMPTY_MAP,
-              Lists.newArrayList()).getCommand().getCommandType());
+              Lists.newArrayList(),
+                  ImmutableMap.of()).getCommand().getCommandType());
 
       assertTrue(cluster.stopLeader());
       cluster.waitForNewMaster(CLUSTER_WAIT_TIMEOUT_MS);
@@ -330,7 +333,8 @@ public class MasterFaultToleranceIntegrationTest extends BaseIntegrationTest {
       assertEquals(CommandType.Register, blockMaster2
           .workerHeartbeat(workerId2a, null, Collections.EMPTY_MAP, Collections.EMPTY_LIST,
           Collections.EMPTY_MAP, Collections.EMPTY_MAP,
-          Lists.newArrayList()).getCommand().getCommandType());
+          Lists.newArrayList(),
+                  ImmutableMap.of()).getCommand().getCommandType());
 
       // Worker 2 re-registers (and gets a new worker id)
       long workerId2b =
@@ -343,7 +347,8 @@ public class MasterFaultToleranceIntegrationTest extends BaseIntegrationTest {
       assertEquals(CommandType.Register,
           blockMaster2.workerHeartbeat(workerId1a, null, Collections.EMPTY_MAP,
               Collections.EMPTY_LIST, Collections.EMPTY_MAP, Collections.EMPTY_MAP,
-              Lists.newArrayList()).getCommand().getCommandType());
+              Lists.newArrayList(),
+                  ImmutableMap.of()).getCommand().getCommandType());
 
       // Worker 1 re-registers (and gets a new worker id)
       long workerId1b =
