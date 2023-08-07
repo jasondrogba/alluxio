@@ -1941,6 +1941,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_BLOCK_MATA_FAIRNESS_THRESHOLD =
+          doubleBuilder(Name.MASTER_BLOCK_MATA_FAIRNESS_THRESHOLD)
+                  .setDefaultValue(0.7)
+                  .setDescription("A factor to control the LRFU and Replica, range from 0 to 1")
+                  .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+                  .setScope(Scope.MASTER)
+                  .setIsDynamic(true)
+                  .build();
   public static final PropertyKey MASTER_DAILY_BACKUP_ENABLED =
       booleanBuilder(Name.MASTER_DAILY_BACKUP_ENABLED)
           .setDefaultValue(false)
@@ -3634,6 +3642,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
                   .setScope(Scope.ALL)
                   .setIsDynamic(true)
                   .build();
+
   public static final PropertyKey MAINTAIN_REPLICA_INFO =
           booleanBuilder(Name.MAINTAIN_REPLICA_INFO)
                   .setDefaultValue(false)
@@ -6978,6 +6987,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.backup.suspend.timeout";
     public static final String MASTER_BLOCK_SCAN_INVALID_BATCH_MAX_SIZE =
         "alluxio.master.block.scan.invalid.batch.max.size";
+    public static final String MASTER_BLOCK_MATA_FAIRNESS_THRESHOLD =
+            "alluxio.master.block.mata.fairness.threshold";
     public static final String MASTER_SHELL_BACKUP_STATE_LOCK_GRACE_MODE =
         "alluxio.master.shell.backup.state.lock.grace.mode";
     public static final String MASTER_SHELL_BACKUP_STATE_LOCK_TRY_DURATION =
@@ -7361,6 +7372,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
             "alluxio.worker.block.annotator.replica.replica.ratio";
     public static final String WORKER_BLOCK_ANNOTATOR_COMPOSITE_RATIO =
             "alluxio.worker.block.annotator.composite.ratio";
+
     public static final String MAINTAIN_REPLICA_INFO =
             "alluxio.master.maintain.replica.info";
     public static final String WORKER_FUSE_ENABLED =

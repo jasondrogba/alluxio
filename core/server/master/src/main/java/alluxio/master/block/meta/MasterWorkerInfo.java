@@ -782,6 +782,7 @@ public final class MasterWorkerInfo {
   }
 
   private void calculateFairnessIndex(){
+    double fairnessThreshold = Configuration.getDouble(PropertyKey.MASTER_BLOCK_MATA_FAIRNESS_THRESHOLD);
     long sumOfValues = 0;
     long sumOfSquaredValues = 0;
 
@@ -796,14 +797,14 @@ public final class MasterWorkerInfo {
     PropertyKey key = PropertyKey.WORKER_BLOCK_ANNOTATOR_DYNAMIC_SORT;
     String policy = Configuration.getString(key);
 
-    if (fairnessIndex > 0.7 && !policy.equals("REPLICA")){
+    if (fairnessIndex > fairnessThreshold && !policy.equals("REPLICA")){
       LOG.info("fairnessIndex :{}, AI ,change policy {} to REPLICA",fairnessIndex,policy);
 
       if (Configuration.getBoolean(PropertyKey.CONF_DYNAMIC_UPDATE_ENABLED)
               && key.isDynamic()) {
       Configuration.set(key,"REPLICA",Source.RUNTIME);
       }
-    } else if (fairnessIndex <= 0.7 && !policy.equals("LRU") ) {
+    } else if (fairnessIndex <= fairnessThreshold && !policy.equals("LRU") ) {
       LOG.info("fairnessIndex :{}, DA ,change policy {} to LRU",fairnessIndex,policy);
 
       if (Configuration.getBoolean(PropertyKey.CONF_DYNAMIC_UPDATE_ENABLED)
