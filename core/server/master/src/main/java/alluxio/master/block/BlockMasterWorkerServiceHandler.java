@@ -82,7 +82,7 @@ public final class BlockMasterWorkerServiceHandler extends
     final Map<String, StorageList> lostStorageMap = request.getLostStorageMap();
 
     final Map<Long,Long> blockFrequency = request.getBlockFrequencyMap();
-    BlockTotalFrequency.sumBlockFrequencyMap(blockFrequency);
+//    BlockTotalFrequency.sumBlockFrequencyMap(blockFrequency);
 
     final Map<Block.BlockLocation, List<Long>> addedBlocksMap =
         reconstructBlocksOnLocationMap(request.getAddedBlocksList(), workerId);

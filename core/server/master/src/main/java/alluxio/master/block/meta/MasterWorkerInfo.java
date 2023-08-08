@@ -757,6 +757,7 @@ public final class MasterWorkerInfo {
    * when frequency
    */
   public void updateFrequencyMap(Map<Long,Long> frequencyMap) {
+    int fairnessWindowSize = Configuration.getInt(PropertyKey.MASTER_BLOCK_META_FAIRNESS_WINDOW_SIZE);
     try (LockResource r = lockFrequencyMapBlock()){
       for (Map.Entry<Long, Long> entry : frequencyMap.entrySet()) {
         long blockId = entry.getKey();
@@ -765,7 +766,7 @@ public final class MasterWorkerInfo {
         long totalFrequency = mBlockFrequency.getOrDefault(blockId, 0L);
         mBlockFrequency.put(blockId, totalFrequency + frequency);
         // Keep the map size limited to the most recent 100 block accesses
-        if (mTotalFrequency >= 400) {
+        if (mTotalFrequency >= fairnessWindowSize) {
           // You can choose to remove the least recently accessed block or based on some other criteria
           // For simplicity, we remove the first entry here (not necessarily the least recently accessed)
 //        mBlockFrequency.remove(frequencyMap.keySet().iterator().next())
@@ -782,7 +783,7 @@ public final class MasterWorkerInfo {
   }
 
   private void calculateFairnessIndex(){
-    double fairnessThreshold = Configuration.getDouble(PropertyKey.MASTER_BLOCK_MATA_FAIRNESS_THRESHOLD);
+    double fairnessThreshold = Configuration.getDouble(PropertyKey.MASTER_BLOCK_META_FAIRNESS_THRESHOLD);
     long sumOfValues = 0;
     long sumOfSquaredValues = 0;
 

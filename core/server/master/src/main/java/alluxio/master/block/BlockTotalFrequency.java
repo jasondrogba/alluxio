@@ -1,43 +1,63 @@
 package alluxio.master.block;
 
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.Source;
+import alluxio.resource.LockResource;
+import alluxio.worker.block.BlockFrequencyCollector;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.annotation.concurrent.GuardedBy;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class BlockTotalFrequency {
-    private static final Map<Long, Long> mBlockFrequencyMap
-            = new ConcurrentHashMap<>();
+    @GuardedBy("mFrequencyLock")
+    private final Map<Long, Long> mBlockFrequencyMap;
+    private final Lock mFrequencyLock ;
+
+    @GuardedBy("mFrequencyLock")
+    private long mTotalFrequency;
+    private static final Logger LOG = LoggerFactory.getLogger(BlockTotalFrequency.class);
 
     public BlockTotalFrequency() {
-
+        mBlockFrequencyMap = new ConcurrentHashMap<>();
+        mTotalFrequency = 0;
+        mFrequencyLock = new ReentrantLock();
     }
-
-    public static void sumBlockFrequencyMap(Map<Long,Long> blockFrequencyMap) {
-        for (Map.Entry<Long, Long> entry : blockFrequencyMap.entrySet()) {
-            long blockId = entry.getKey();
-            long frequency = entry.getValue();
-            long totalFrequency = mBlockFrequencyMap.getOrDefault(blockId, 0L);
-            mBlockFrequencyMap.put(blockId, totalFrequency + frequency);
-
-            // Keep the map size limited to the most recent 100 block accesses
-            if (mBlockFrequencyMap.size() > 100) {
-                // You can choose to remove the least recently accessed block or based on some other criteria
-                // For simplicity, we remove the first entry here (not necessarily the least recently accessed)
-                mBlockFrequencyMap.remove(mBlockFrequencyMap.keySet().iterator().next());
+    LockResource lockFrequencyMapBlock(){
+        return  new LockResource(mFrequencyLock);
+    }
+    public void sumBlockFrequencyMap(Map<Long,Long> blockFrequencyMap) {
+        int fairnessWindowSize = Configuration.getInt(PropertyKey.MASTER_BLOCK_META_FAIRNESS_WINDOW_SIZE);
+        try (LockResource r = lockFrequencyMapBlock()){
+            for (Map.Entry<Long, Long> entry : blockFrequencyMap.entrySet()) {
+                long blockId = entry.getKey();
+                long frequency = entry.getValue();
+                mTotalFrequency += frequency;
+                long totalFrequency = mBlockFrequencyMap.getOrDefault(blockId, 0L);
+                mBlockFrequencyMap.put(blockId, totalFrequency + frequency);
+                // Keep the map size limited to the most recent 100 block accesses
+                if (mTotalFrequency >= fairnessWindowSize) {
+                    // You can choose to remove the least recently accessed block or based on some other criteria
+                    // For simplicity, we remove the first entry here (not necessarily the least recently accessed)
+//        mBlockFrequency.remove(frequencyMap.keySet().iterator().next())
+                    calculateFairnessIndex();
+                    mBlockFrequencyMap.clear();
+                    mTotalFrequency = 0;
+                }
             }
         }
+
+        LOG.info("total Frequency: {}",mTotalFrequency);
+        LOG.info("block frequency Map: {}",mBlockFrequencyMap);
     }
 
-    public static Map<Long, Long> getBlockFrequencyMap() {
-        return mBlockFrequencyMap;
-    }
 
-    public static void clearBlockFrequencyMap() {
-        mBlockFrequencyMap.clear();
-    }
-
-    //calculate the total frequency of all blocks
-
-    private static double calculateMean(Map<Long, Long> blockFrequencyMap) {
+    private  double calculateMean(Map<Long, Long> blockFrequencyMap) {
         double mean = 0;
         for (Map.Entry<Long, Long> entry : blockFrequencyMap.entrySet()) {
             mean += entry.getValue();
@@ -46,7 +66,7 @@ public class BlockTotalFrequency {
         return mean;
     }
 
-    private static double calculateStandardDeviation(Map<Long, Long> blockFrequencyMap) {
+    private  double calculateStandardDeviation(Map<Long, Long> blockFrequencyMap) {
         double mean = calculateMean(blockFrequencyMap);
         double standardDeviation = 0;
         for (Map.Entry<Long, Long> entry : blockFrequencyMap.entrySet()) {
@@ -56,21 +76,41 @@ public class BlockTotalFrequency {
         standardDeviation = Math.sqrt(standardDeviation);
         return standardDeviation;
     }
+    private void calculateFairnessIndex(){
+        double fairnessThreshold = Configuration.getDouble(PropertyKey.MASTER_BLOCK_META_FAIRNESS_THRESHOLD);
+        long sumOfValues = 0;
+        long sumOfSquaredValues = 0;
 
-    private  static double calculateFairness(Map<Long, Long> blockFrequencyMap) {
-        double fairness = 0;
-        long sumPower=0;
-        long powerSum=0;
-
-        for (Map.Entry<Long, Long> entry : blockFrequencyMap.entrySet()) {
-            sumPower += (long) Math.pow(entry.getValue(),2);
-            powerSum += entry.getValue();
+        for (Map.Entry<Long, Long> entry : mBlockFrequencyMap.entrySet()) {
+            long value = entry.getValue();
+            sumOfValues += value;
+            sumOfSquaredValues += value * value;
         }
-        powerSum = (long)Math.pow(powerSum,2);
-        fairness = (double) powerSum / (double) blockFrequencyMap.size() / (double)sumPower;
-        return fairness;
-    }
+        long sumSquared = sumOfValues * sumOfValues;
+        double fairnessIndex = ((double) sumSquared) / (sumOfSquaredValues * mBlockFrequencyMap.size());
 
+        PropertyKey key = PropertyKey.WORKER_BLOCK_ANNOTATOR_DYNAMIC_SORT;
+        String policy = Configuration.getString(key);
+
+        if (fairnessIndex > fairnessThreshold && !policy.equals("REPLICA")){
+            LOG.info("fairnessIndex :{}, AI ,change policy {} to REPLICA",fairnessIndex,policy);
+
+            if (Configuration.getBoolean(PropertyKey.CONF_DYNAMIC_UPDATE_ENABLED)
+                    && key.isDynamic()) {
+                Configuration.set(key,"REPLICA", Source.RUNTIME);
+            }
+        } else if (fairnessIndex <= fairnessThreshold && !policy.equals("LRU") ) {
+            LOG.info("fairnessIndex :{}, DA ,change policy {} to LRU",fairnessIndex,policy);
+
+            if (Configuration.getBoolean(PropertyKey.CONF_DYNAMIC_UPDATE_ENABLED)
+                    && key.isDynamic()) {
+                Configuration.set(key,"LRU",Source.RUNTIME);
+            }
+        }else {
+            LOG.info("fairnessIndex :{}, no change policy {}",fairnessIndex,policy);
+        }
+
+    }
 
 
 

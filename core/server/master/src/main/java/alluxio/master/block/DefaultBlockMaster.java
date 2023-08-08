@@ -271,6 +271,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   /** Handle to the metrics master. */
   private final MetricsMaster mMetricsMaster;
 
+  private final BlockTotalFrequency mBlockTotalFrequency = new BlockTotalFrequency();
+
   /**
    * The service that detects lost worker nodes, and tries to restart the failed workers.
    * We store it here so that it can be accessed from tests.
@@ -1376,8 +1378,10 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
                                             Map<Long,Long> frequencyMap) {
     LOG.debug("Frequency Map info: {}", mMaintainReplicaInfo);
 
-    if (!frequencyMap.isEmpty()) {
-      workerInfo.updateFrequencyMap(frequencyMap);
+    if (!frequencyMap.isEmpty() && mMaintainReplicaInfo) {
+      LOG.debug("Frequency Map info: {}", frequencyMap);
+//      workerInfo.updateFrequencyMap(frequencyMap);
+      mBlockTotalFrequency.sumBlockFrequencyMap(frequencyMap);
     }
 
   }

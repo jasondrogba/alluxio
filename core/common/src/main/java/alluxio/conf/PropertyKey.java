@@ -1941,10 +1941,23 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.MASTER)
           .build();
-  public static final PropertyKey MASTER_BLOCK_MATA_FAIRNESS_THRESHOLD =
-          doubleBuilder(Name.MASTER_BLOCK_MATA_FAIRNESS_THRESHOLD)
-                  .setDefaultValue(0.7)
-                  .setDescription("A factor to control the LRFU and Replica, range from 0 to 1")
+  public static final PropertyKey MASTER_BLOCK_META_FAIRNESS_THRESHOLD =
+          doubleBuilder(Name.MASTER_BLOCK_META_FAIRNESS_THRESHOLD)
+                  .setDefaultValue(0.5)
+                  .setDescription("If the threshold of the fairnessIndex is lower than the value calculated by the master,"
+                          + "it indicates that the probability distribution of block reads for the current block is unfair,"
+                  +"and uneven. If the value calculated by the master for the fairnessIndex exceeds this threshold,"
+                  + "it indicates that the probability distribution of block reads for the current block is fair and even")
+                  .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+                  .setScope(Scope.MASTER)
+                  .setIsDynamic(true)
+                  .build();
+  public static final PropertyKey MASTER_BLOCK_META_FAIRNESS_WINDOW_SIZE =
+          intBuilder(Name.MASTER_BLOCK_META_FAIRNESS_WINDOW_SIZE)
+                  .setDefaultValue(800)
+                  .setDescription("The window size is used to track the reading of blocks. Once the window is full, "
+                          +"the master will calculate the fairnessIndex based on the frequency of block reads in the window. "
+                          + "A larger window size results in a more accurate fairness calculation, but it reduces flexibility.")
                   .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
                   .setScope(Scope.MASTER)
                   .setIsDynamic(true)
@@ -6987,8 +7000,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.backup.suspend.timeout";
     public static final String MASTER_BLOCK_SCAN_INVALID_BATCH_MAX_SIZE =
         "alluxio.master.block.scan.invalid.batch.max.size";
-    public static final String MASTER_BLOCK_MATA_FAIRNESS_THRESHOLD =
-            "alluxio.master.block.mata.fairness.threshold";
+    public static final String MASTER_BLOCK_META_FAIRNESS_THRESHOLD =
+            "alluxio.master.block.meta.fairness.threshold";
+    public static final String MASTER_BLOCK_META_FAIRNESS_WINDOW_SIZE =
+            "alluxio.master.block.meta.fairness.window.size";
     public static final String MASTER_SHELL_BACKUP_STATE_LOCK_GRACE_MODE =
         "alluxio.master.shell.backup.state.lock.grace.mode";
     public static final String MASTER_SHELL_BACKUP_STATE_LOCK_TRY_DURATION =
