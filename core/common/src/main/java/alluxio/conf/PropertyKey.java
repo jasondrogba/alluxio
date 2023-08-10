@@ -1941,6 +1941,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.MASTER)
           .build();
+
+  public static final PropertyKey MASTER_BLOCK_META_FAIRNESS_ENABLED =
+          booleanBuilder(Name.MASTER_BLOCK_META_FAIRNESS_ENABLED)
+                  .setDefaultValue(false)
+                  .setDescription("Whether to enable the fairnessIndex calculation for block reads")
+                  .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+                  .setScope(Scope.MASTER)
+                  .setIsDynamic(true)
+                  .build();
   public static final PropertyKey MASTER_BLOCK_META_FAIRNESS_THRESHOLD =
           doubleBuilder(Name.MASTER_BLOCK_META_FAIRNESS_THRESHOLD)
                   .setDefaultValue(0.5)
@@ -7000,6 +7009,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.backup.suspend.timeout";
     public static final String MASTER_BLOCK_SCAN_INVALID_BATCH_MAX_SIZE =
         "alluxio.master.block.scan.invalid.batch.max.size";
+    public static final String MASTER_BLOCK_META_FAIRNESS_ENABLED =
+            "alluxio.master.block.meta.fairness.enabled";
     public static final String MASTER_BLOCK_META_FAIRNESS_THRESHOLD =
             "alluxio.master.block.meta.fairness.threshold";
     public static final String MASTER_BLOCK_META_FAIRNESS_WINDOW_SIZE =

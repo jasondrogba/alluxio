@@ -141,6 +141,9 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
    */
   private final boolean mMaintainReplicaInfo = Configuration.getBoolean(
           PropertyKey.MAINTAIN_REPLICA_INFO);
+  private final boolean mBlockFairnessIndex = Configuration.getBoolean(
+          PropertyKey.MASTER_BLOCK_META_FAIRNESS_ENABLED);
+
 
   /** The only valid key for {@link #mWorkerInfoCache}. */
   private static final String WORKER_INFO_CACHE_KEY = "WorkerInfoKey";
@@ -1378,7 +1381,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
                                             Map<Long,Long> frequencyMap) {
     LOG.debug("Frequency Map info: {}", mMaintainReplicaInfo);
 
-    if (!frequencyMap.isEmpty() && mMaintainReplicaInfo) {
+    if (!frequencyMap.isEmpty() && mMaintainReplicaInfo && mBlockFairnessIndex) {
       LOG.debug("Frequency Map info: {}", frequencyMap);
 //      workerInfo.updateFrequencyMap(frequencyMap);
       mBlockTotalFrequency.sumBlockFrequencyMap(frequencyMap);
