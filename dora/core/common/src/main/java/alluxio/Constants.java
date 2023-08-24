@@ -199,9 +199,6 @@ public final class Constants {
   public static final int JOB_MASTER_CLIENT_SERVICE_VERSION = 1;
   public static final String JOB_WORKER_NAME = "JobWorker";
 
-  // Throttle master
-  public static final String THROTTLE_MASTER_NAME = "ThrottleMaster";
-
   public static final int JOB_DEFAULT_MASTER_PORT = 20001;
   public static final int JOB_DEFAULT_MASTER_WEB_PORT = JOB_DEFAULT_MASTER_PORT + 1;
   public static final int JOB_DEFAULT_WORKER_PORT = 30001;
@@ -223,11 +220,6 @@ public final class Constants {
   public static final int NO_AUTO_PERSIST = -1;
   public static final int PERSISTENCE_INVALID_JOB_ID = -1;
   public static final String PERSISTENCE_INVALID_UFS_PATH = "";
-
-  // Table service
-  public static final String TABLE_MASTER_NAME = "TableMaster";
-  public static final String TABLE_MASTER_CLIENT_SERVICE_NAME = "TableMasterClient";
-  public static final long TABLE_MASTER_CLIENT_SERVICE_VERSION = 1;
 
   // Medium name
   public static final String MEDIUM_MEM = "MEM";

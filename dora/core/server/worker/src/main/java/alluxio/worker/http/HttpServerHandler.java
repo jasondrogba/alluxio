@@ -26,30 +26,31 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
 import alluxio.conf.Configuration;
 import alluxio.exception.AlluxioException;
+import alluxio.exception.PageNotFoundException;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.util.FileSystemOptionsUtils;
 
 import com.google.gson.Gson;
-import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
-import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.FileRegion;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.DefaultFullHttpResponse;
+import io.netty.handler.codec.http.DefaultHttpResponse;
 import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpObject;
 import io.netty.handler.codec.http.HttpRequest;
+import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpUtil;
+import io.netty.handler.codec.http.LastHttpContent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * {@link HttpServerHandler} deals with HTTP requests received from Netty Channel.
@@ -74,10 +75,11 @@ public class HttpServerHandler extends SimpleChannelInboundHandler<HttpObject> {
   }
 
   @Override
-  public void channelRead0(ChannelHandlerContext ctx, HttpObject msg) {
+  public void channelRead0(ChannelHandlerContext ctx, HttpObject msg) throws PageNotFoundException {
     if (msg instanceof HttpRequest) {
       HttpRequest req = (HttpRequest) msg;
-      FullHttpResponse response = dispatch(ctx.channel(), req);
+      HttpResponseContext responseContext = dispatch(req);
+      HttpResponse response = responseContext.getHttpResponse();
 
       boolean keepAlive = HttpUtil.isKeepAlive(req);
       if (keepAlive) {
@@ -89,60 +91,58 @@ public class HttpServerHandler extends SimpleChannelInboundHandler<HttpObject> {
         response.headers().set(CONNECTION, CLOSE);
       }
 
-      ChannelFuture f = ctx.write(response);
+      ChannelFuture channelFuture;
+      if (response instanceof FullHttpResponse) {
+        channelFuture = ctx.write(response);
+      } else {
+        ctx.write(response);
+        ctx.write(responseContext.getFileRegion());
+        channelFuture = ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
+      }
 
       if (!keepAlive) {
-        f.addListener(ChannelFutureListener.CLOSE);
+        channelFuture.addListener(ChannelFutureListener.CLOSE);
       }
     }
   }
 
-  private Map<String, String> parseRequestParameters(String requestUri) {
-    requestUri = requestUri.substring(requestUri.indexOf("?") + 1);
-    String[] params = requestUri.split("&");
-    Map<String, String> parametersMap = new HashMap<>();
-    for (String param : params) {
-      String[] keyValue = param.split("=");
-      parametersMap.put(keyValue[0], keyValue[1]);
-    }
-    return parametersMap;
-  }
-
-  private FullHttpResponse dispatch(Channel channel, HttpRequest httpRequest) {
+  private HttpResponseContext dispatch(HttpRequest httpRequest)
+      throws PageNotFoundException {
     String requestUri = httpRequest.uri();
     // parse the request uri to get the parameters
-    String requestMapping = getRequestMapping(requestUri);
-    Map<String, String> parametersMap = parseRequestParameters(requestUri);
+    List<String> fields = HttpRequestUtil.extractFieldsFromHttpRequestUri(requestUri);
+    HttpRequestUri httpRequestUri = HttpRequestUri.of(fields);
 
     // parse the URI and dispatch it to different methods
-    switch (requestMapping) {
-      case "page":
-        return doGetPage(parametersMap, channel, httpRequest);
+    switch (httpRequestUri.getMappingPath()) {
+      case "file":
+        return doGetPage(httpRequest, httpRequestUri);
       case "files":
-        return doListFiles(parametersMap, channel, httpRequest);
+        return doListFiles(httpRequest, httpRequestUri);
       default:
         // TODO(JiamingMai): this should not happen, we should throw an exception here
         return null;
     }
   }
 
-  private FullHttpResponse doGetPage(Map<String, String> parametersMap,
-                                     Channel channel, HttpRequest httpRequest) {
-    String fileId = parametersMap.get("fileId");
-    long pageIndex = Long.parseLong(parametersMap.get("pageIndex"));
+  private HttpResponseContext doGetPage(HttpRequest httpRequest, HttpRequestUri httpRequestUri)
+      throws PageNotFoundException {
+    List<String> remainingFields = httpRequestUri.getRemainingFields();
+    String fileId = remainingFields.get(0);
+    long pageIndex = Long.parseLong(remainingFields.get(2));
 
-    ByteBuf byteBuf = mPagedService.getPage(fileId, pageIndex, channel);
-    FullHttpResponse response = new DefaultFullHttpResponse(httpRequest.protocolVersion(), OK,
-        byteBuf);
+    FileRegion fileRegion = mPagedService.getPageFileRegion(fileId, pageIndex);
+    HttpResponse response = new DefaultHttpResponse(httpRequest.protocolVersion(), OK);
+    HttpResponseContext httpResponseContext = new HttpResponseContext(response, fileRegion);
     response.headers()
         .set(CONTENT_TYPE, TEXT_PLAIN)
-        .setInt(CONTENT_LENGTH, response.content().readableBytes());
-    return response;
+        .setInt(CONTENT_LENGTH, (int) fileRegion.count());
+    return httpResponseContext;
   }
 
-  private FullHttpResponse doListFiles(Map<String, String> parametersMap,
-                           Channel channel, HttpRequest httpRequest) {
-    String path = parametersMap.get("path");
+  private HttpResponseContext doListFiles(HttpRequest httpRequest, HttpRequestUri httpRequestUri) {
+    String path = httpRequestUri.getParameters().get("path");
+    path = handleReservedCharacters(path);
     ListStatusPOptions options = FileSystemOptionsUtils.listStatusDefaults(
         Configuration.global()).toBuilder().build();
     try {
@@ -155,7 +155,8 @@ public class HttpServerHandler extends SimpleChannelInboundHandler<HttpObject> {
       List<ResponseFileInfo> responseFileInfoList = new ArrayList<>();
       for (URIStatus uriStatus : uriStatuses) {
         String type = uriStatus.isFolder() ? "directory" : "file";
-        ResponseFileInfo responseFileInfo = new ResponseFileInfo(type, uriStatus.getName());
+        ResponseFileInfo responseFileInfo = new ResponseFileInfo(type, uriStatus.getName(),
+            uriStatus.getLength());
         responseFileInfoList.add(responseFileInfo);
       }
       // convert to JSON string
@@ -166,18 +167,16 @@ public class HttpServerHandler extends SimpleChannelInboundHandler<HttpObject> {
       response.headers()
           .set(CONTENT_TYPE, APPLICATION_JSON)
           .setInt(CONTENT_LENGTH, response.content().readableBytes());
-      return response;
+      return new HttpResponseContext(response, null);
     } catch (IOException | AlluxioException e) {
       LOG.error("Failed to list files of path {}", path, e);
       return null;
     }
   }
 
-  private String getRequestMapping(String requestUri) {
-    int endIndex = requestUri.indexOf("?");
-    int startIndex = requestUri.lastIndexOf("/", endIndex);
-    String requestMapping = requestUri.substring(startIndex + 1, endIndex);
-    return requestMapping;
+  private String handleReservedCharacters(String path) {
+    path = path.replace("%2F", "/");
+    return path;
   }
 
   @Override
