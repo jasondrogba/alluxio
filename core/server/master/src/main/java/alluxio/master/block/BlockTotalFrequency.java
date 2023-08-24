@@ -41,14 +41,14 @@ public class BlockTotalFrequency {
                 long totalFrequency = mBlockFrequencyMap.getOrDefault(blockId, 0L);
                 mBlockFrequencyMap.put(blockId, totalFrequency + frequency);
                 // Keep the map size limited to the most recent 100 block accesses
-                if (mTotalFrequency >= fairnessWindowSize) {
-                    // You can choose to remove the least recently accessed block or based on some other criteria
-                    // For simplicity, we remove the first entry here (not necessarily the least recently accessed)
+            }
+            if (mTotalFrequency >= fairnessWindowSize) {
+                // You can choose to remove the least recently accessed block or based on some other criteria
+                // For simplicity, we remove the first entry here (not necessarily the least recently accessed)
 //        mBlockFrequency.remove(frequencyMap.keySet().iterator().next())
-                    calculateFairnessIndex();
-                    mBlockFrequencyMap.clear();
-                    mTotalFrequency = 0;
-                }
+                calculateFairnessIndex();
+                mBlockFrequencyMap.clear();
+                mTotalFrequency = 0;
             }
         }
 
@@ -76,6 +76,7 @@ public class BlockTotalFrequency {
         standardDeviation = Math.sqrt(standardDeviation);
         return standardDeviation;
     }
+
     private void calculateFairnessIndex(){
         double fairnessThreshold = Configuration.getDouble(PropertyKey.MASTER_BLOCK_META_FAIRNESS_THRESHOLD);
         long sumOfValues = 0;

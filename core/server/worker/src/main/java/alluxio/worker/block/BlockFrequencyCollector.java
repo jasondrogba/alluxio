@@ -9,7 +9,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class BlockFrequencyCollector {
     private static final Logger LOG = LoggerFactory.getLogger(BlockFrequencyCollector.class);
-
     private static final Map<Long, Long> mblockFrequencyMap
             = new ConcurrentHashMap<>();
 
