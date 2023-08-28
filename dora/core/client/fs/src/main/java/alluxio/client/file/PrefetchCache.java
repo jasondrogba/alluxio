@@ -7,7 +7,16 @@ import alluxio.PositionReader;
 import alluxio.network.protocol.databuffer.PooledDirectNioByteBuf;
 import java.io.IOException;
 
-
+/**
+ * This class represents a prefetch cache for file data. It is used to store and retrieve
+ * prefetched data from a file. The cache is implemented as a {@link ByteBuf} and is
+ * populated with data read from a {@link PositionReader}.
+ * The cache keeps track of the position and size of each read operation that contributed
+ * to the cache, and uses this information to determine the amount of data to prefetch in
+ * subsequent read operations.
+ * The cache is evicted on a LRU (Least Recently Used) basis, and can be closed to release
+ * its resources.
+ */
 public class PrefetchCache implements AutoCloseable {
   private final long mFileLength;
   private final EvictingQueue<CallTrace> mCallHistory;
@@ -16,11 +25,20 @@ public class PrefetchCache implements AutoCloseable {
   private ByteBuf mCache = Unpooled.wrappedBuffer(new byte[0]);
   private long mCacheStartPos = 0;
 
+  /**
+   * Constructs a new PrefetchCache object with the specified prefetch multiplier and file length.
+   *
+   * @param prefetchMultiplier the multiplier used to determine the prefetch size
+   * @param fileLength the length of the file
+   */
   PrefetchCache(int prefetchMultiplier, long fileLength) {
     mCallHistory = EvictingQueue.create(prefetchMultiplier);
     mFileLength = fileLength;
   }
 
+  /**
+   * Updates the prefetch size based on the call history.
+   */
   private void update() {
     int consecutiveReadLength = 0;
     long lastReadEnd = -1;
@@ -36,6 +54,12 @@ public class PrefetchCache implements AutoCloseable {
     mPrefetchSize = consecutiveReadLength;
   }
 
+  /**
+   * Adds a call trace to the cache's call history.
+   *
+   * @param pos the position within the file
+   * @param size the size of the read operation
+   */
   public void addTrace(long pos, int size) {
     mCallHistory.add(new CallTrace(pos, size));
     update();
@@ -72,8 +96,8 @@ public class PrefetchCache implements AutoCloseable {
   /**
    * Prefetches and caches data from the reader.
    *
-   * @param reader reader
-   * @param pos position within the file
+   * @param reader the reader to prefetch data from
+   * @param pos the position within the file to start the prefetch from
    * @param minBytesToRead minimum number of bytes to read from the reader
    * @return number of bytes that's been prefetched, 0 if exception occurs
    */
@@ -102,20 +126,39 @@ public class PrefetchCache implements AutoCloseable {
     }
   }
 
+  /**
+   * Releases the resources used by the cache.
+   */
   @Override
   public void close() {
     mCache.release();
     mCache = Unpooled.wrappedBuffer(new byte[0]);
     mCacheStartPos = 0;
   }
+
+  /**
+   * Returns the cache's underlying ByteBuf.
+   *
+   * @return the cache's ByteBuf
+   */
   public ByteBuf getCache() {
     return mCache;
   }
 
+  /**
+   * Returns the start position of the cache.
+   *
+   * @return the start position of the cache
+   */
   public long getCacheStartPos() {
     return mCacheStartPos;
   }
 
+  /**
+   * Returns the prefetch size of the cache.
+   *
+   * @return the prefetch size of the cache
+   */
   public int getPrefetchSize() {
     return mPrefetchSize;
   }

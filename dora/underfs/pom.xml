@@ -74,16 +74,17 @@
       <artifactId>slf4j-api</artifactId>
       <scope>provided</scope>
     </dependency>
-    <dependency>
-      <groupId>org.gaul</groupId>
-      <artifactId>s3proxy</artifactId>
-      <scope>test</scope>
-    </dependency>
 
     <!-- External test dependencies -->
     <dependency>
       <groupId>io.findify</groupId>
       <artifactId>s3mock_2.13</artifactId>
+      <version>0.2.6</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.gaul</groupId>
+      <artifactId>s3proxy</artifactId>
       <scope>test</scope>
     </dependency>
   </dependencies>
