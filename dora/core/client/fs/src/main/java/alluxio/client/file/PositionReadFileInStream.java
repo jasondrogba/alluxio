@@ -107,7 +107,7 @@ public class PositionReadFileInStream extends FileInStream {
   public int read(ByteBuffer byteBuffer, int off, int len) throws IOException {
     byteBuffer.position(off).limit(off + len);
     mPrefetchCache.addTrace(mPos, len);
-    return readDataFromCacheAndSource(mPos, byteBuffer);
+    return readDataFromCacheAndSource(mPos, byteBuffer,true);
   }
 
   /**
@@ -125,7 +125,7 @@ public class PositionReadFileInStream extends FileInStream {
       throws IOException {
     ByteBuffer byteBuffer = ByteBuffer.wrap(buffer, offset, len);
     mPrefetchCache.addTrace(position, len);
-    return readDataFromCacheAndSource(position, byteBuffer);
+    return readDataFromCacheAndSource(position, byteBuffer,false);
   }
 
   /**
@@ -195,10 +195,11 @@ public class PositionReadFileInStream extends FileInStream {
    *
    * @param pos the position to read data from
    * @param byteBuffer the ByteBuffer to read data into
+   * @param updatePosition whether to update the position of the stream
    * @return the number of bytes read, or -1 if the end of the stream is reached
    * @throws IOException if an I/O error occurs
    */
-  public int readDataFromCacheAndSource(long pos, ByteBuffer byteBuffer) throws IOException {
+  public int readDataFromCacheAndSource(long pos, ByteBuffer byteBuffer,boolean updatePosition) throws IOException {
     int totalBytesRead = 0;
     int bytesReadFromCache = mPrefetchCache.fillWithCache(pos, byteBuffer);
     totalBytesRead += bytesReadFromCache;
@@ -234,6 +235,10 @@ public class PositionReadFileInStream extends FileInStream {
 
     totalBytesRead += bytesRead;
     pos += bytesRead;
+
+    if (updatePosition) {
+      mPos = pos;
+    }
 
     return totalBytesRead;
   }
