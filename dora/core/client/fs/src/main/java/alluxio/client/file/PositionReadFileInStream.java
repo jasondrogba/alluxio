@@ -36,7 +36,7 @@ public class PositionReadFileInStream extends FileInStream {
   private long mPos = 0; // current position
   private boolean mClosed; // flag indicating if the stream is closed
   private final PositionReader mPositionReader; // reader for file positions
-  private final PrefetchCache mPrefethCache; // cache for prefetching data
+  private final PrefetchCache mPrefetchCache; // cache for prefetching data
 
   /**
    * Initializes a new instance of the PositionReadFileInStream class with the given PositionReader
@@ -50,7 +50,7 @@ public class PositionReadFileInStream extends FileInStream {
       long length) {
     mPositionReader = reader;
     mLength = length;
-    mPrefethCache = new PrefetchCache(
+    mPrefetchCache = new PrefetchCache(
         Configuration.getInt(PropertyKey.USER_POSITION_READER_STREAMING_MULTIPLIER), mLength);
   }
 
@@ -66,17 +66,17 @@ public class PositionReadFileInStream extends FileInStream {
 
   @VisibleForTesting
   int getBufferedLength() {
-    return mPrefethCache.getCache().readableBytes();
+    return mPrefetchCache.getCache().readableBytes();
   }
 
   @VisibleForTesting
   long getBufferedPosition() {
-    return mPrefethCache.getCacheStartPos();
+    return mPrefetchCache.getCacheStartPos();
   }
 
   @VisibleForTesting
   int getPrefetchSize() {
-    return mPrefethCache.getPrefetchSize();
+    return mPrefetchCache.getPrefetchSize();
   }
 
   /**
@@ -106,7 +106,7 @@ public class PositionReadFileInStream extends FileInStream {
   @Override
   public int read(ByteBuffer byteBuffer, int off, int len) throws IOException {
     byteBuffer.position(off).limit(off + len);
-    mPrefethCache.addTrace(mPos, len);
+    mPrefetchCache.addTrace(mPos, len);
     return readDataFromCacheAndSource(mPos, byteBuffer);
   }
 
@@ -124,7 +124,7 @@ public class PositionReadFileInStream extends FileInStream {
   public int positionedRead(long position, byte[] buffer, int offset, int len)
       throws IOException {
     ByteBuffer byteBuffer = ByteBuffer.wrap(buffer, offset, len);
-    mPrefethCache.addTrace(position, len);
+    mPrefetchCache.addTrace(position, len);
     return readDataFromCacheAndSource(position, byteBuffer);
   }
 
@@ -187,7 +187,7 @@ public class PositionReadFileInStream extends FileInStream {
     }
     mClosed = true;
     mPositionReader.close();
-    mPrefethCache.close();
+    mPrefetchCache.close();
   }
 
   /**
@@ -200,7 +200,7 @@ public class PositionReadFileInStream extends FileInStream {
    */
   public int readDataFromCacheAndSource(long pos, ByteBuffer byteBuffer) throws IOException {
     int totalBytesRead = 0;
-    int bytesReadFromCache = mPrefethCache.fillWithCache(pos, byteBuffer);
+    int bytesReadFromCache = mPrefetchCache.fillWithCache(pos, byteBuffer);
     totalBytesRead += bytesReadFromCache;
     pos += bytesReadFromCache;
 
@@ -208,7 +208,7 @@ public class PositionReadFileInStream extends FileInStream {
       return totalBytesRead;
     }
 
-    int bytesPrefetched = mPrefethCache.prefetch(mPositionReader, pos, byteBuffer.remaining());
+    int bytesPrefetched = mPrefetchCache.prefetch(mPositionReader, pos, byteBuffer.remaining());
     if (bytesPrefetched < 0) {
       if (totalBytesRead == 0) {
         return -1;
@@ -216,7 +216,7 @@ public class PositionReadFileInStream extends FileInStream {
       return totalBytesRead;
     }
 
-    bytesReadFromCache = mPrefethCache.fillWithCache(pos, byteBuffer);
+    bytesReadFromCache = mPrefetchCache.fillWithCache(pos, byteBuffer);
     totalBytesRead += bytesReadFromCache;
     pos += bytesReadFromCache;
 
