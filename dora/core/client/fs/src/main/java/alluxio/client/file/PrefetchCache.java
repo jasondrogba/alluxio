@@ -15,7 +15,7 @@ import java.io.IOException;
  * The cache keeps track of the position and size of each read operation that contributed
  * to the cache, and uses this information to determine the amount of data to prefetch in
  * subsequent read operations.
- * The cache is evicted on a LRU (Least Recently Used) basis, and can be closed to release
+ * The cache is evicted on an LRU (Least Recently Used) basis, and can be closed to release
  * its resources.
  */
 public class PrefetchCache implements AutoCloseable {
@@ -106,6 +106,7 @@ public class PrefetchCache implements AutoCloseable {
     int prefetchSize = Math.max(mPrefetchSize, minBytesToRead);
     // cap to remaining file length
     prefetchSize = (int) Math.min(mFileLength - pos, prefetchSize);
+    // Check if the prefetch size is valid. If not, return 0.
     if (prefetchSize <= 0) {
       return 0;
     }

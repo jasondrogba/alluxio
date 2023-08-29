@@ -53,7 +53,13 @@ public class PositionReadFileInStream extends FileInStream {
     mPrefetchCache = new PrefetchCache(
         Configuration.getInt(PropertyKey.USER_POSITION_READER_STREAMING_MULTIPLIER), mLength);
   }
-
+  @VisibleForTesting
+  public PositionReadFileInStream(PositionReader reader, long length,
+                                  PrefetchCache prefetchCache) {
+    mPositionReader = reader;
+    mLength = length;
+    mPrefetchCache = prefetchCache;
+  }
   /**
    * Returns the number of remaining bytes to be read from the stream.
    *
@@ -64,20 +70,20 @@ public class PositionReadFileInStream extends FileInStream {
     return mLength - mPos;
   }
 
-  @VisibleForTesting
-  int getBufferedLength() {
-    return mPrefetchCache.getCache().readableBytes();
-  }
-
-  @VisibleForTesting
-  long getBufferedPosition() {
-    return mPrefetchCache.getCacheStartPos();
-  }
-
-  @VisibleForTesting
-  int getPrefetchSize() {
-    return mPrefetchCache.getPrefetchSize();
-  }
+//  @VisibleForTesting
+//  int getBufferedLength() {
+//    return mPrefetchCache.getCache().readableBytes();
+//  }
+//
+//  @VisibleForTesting
+//  long getBufferedPosition() {
+//    return mPrefetchCache.getCacheStartPos();
+//  }
+//
+//  @VisibleForTesting
+//  int getPrefetchSize() {
+//    return mPrefetchCache.getPrefetchSize();
+//  }
 
   /**
    * Reads data from the stream into the provided byte array.

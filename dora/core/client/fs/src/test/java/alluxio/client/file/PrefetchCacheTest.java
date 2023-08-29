@@ -2,26 +2,21 @@ package alluxio.client.file;
 
 
 import alluxio.PositionReader;
-import alluxio.network.protocol.databuffer.PooledDirectNioByteBuf;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
 import java.nio.ByteBuffer;
-
-import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.*;
 import java.io.IOException;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
+
 
 public class PrefetchCacheTest {
     @Mock
@@ -92,8 +87,8 @@ public class PrefetchCacheTest {
         when(mockPositionReader.read(anyLong(), any(ByteBuf.class), anyInt())).thenReturn(15);
         int bytesRead = prefetchCache.prefetch(mockPositionReader, 0, 15);
         assertEquals(15, bytesRead);
-//        assertEquals(15, prefetchCache.getPrefetchSize());
     }
+
     @Test
     public void testPrefetchExceedsFileLength() throws IOException {
         long pos = 2000;
@@ -106,20 +101,14 @@ public class PrefetchCacheTest {
 
         // Verify that the prefetch size is capped by the remaining file length
         assertEquals(0, bytesPrefetched);
-//        assertEquals(prefetchSize, prefetchCache.getCache().readableBytes());
-//        assertEquals(pos, prefetchCache.getCacheStartPos());
     }
-
 
     @Test
     public void testPrefetchWithException() throws IOException {
         when(mockPositionReader.read(anyLong(),  any(ByteBuf.class), anyInt())).thenThrow(new IOException());
         int bytesRead = prefetchCache.prefetch(mockPositionReader, 0, 15);
         assertEquals(0, bytesRead);
-//        assertEquals(0, prefetchCache.getPrefetchSize());
     }
-
-    // Add more test cases for other methods as needed
 
     @Test
     public void testClose() {
