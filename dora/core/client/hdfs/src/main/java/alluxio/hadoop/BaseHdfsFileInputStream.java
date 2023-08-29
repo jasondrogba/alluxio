@@ -14,27 +14,37 @@ package alluxio.hadoop;
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
+import alluxio.exception.AlluxioException;
+import alluxio.exception.ExceptionMessage;
+import alluxio.exception.FileDoesNotExistException;
 
+import org.apache.hadoop.fs.ByteBufferReadable;
 import org.apache.hadoop.fs.FileSystem.Statistics;
+import org.apache.hadoop.fs.PositionedReadable;
+import org.apache.hadoop.fs.Seekable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.EOFException;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.ByteBuffer;
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * HdfsFileInputStream implement for hadoop 1 and hadoop 2.
+ * An input stream for reading a file from HDFS. This is just a wrapper around
+ * {@link FileInStream} with additional statistics gathering in a {@link Statistics} object.
  */
-<<<<<<<< HEAD:core/client/hdfs/src/main/java/alluxio/hadoop/HdfsFileInputStream.java
-public class HdfsFileInputStream extends BaseHdfsFileInputStream {
-========
 @NotThreadSafe
 public class BaseHdfsFileInputStream extends InputStream implements Seekable, PositionedReadable,
-    ByteBufferReadable {
+        ByteBufferReadable {
   private static final Logger LOG = LoggerFactory.getLogger(BaseHdfsFileInputStream.class);
 
   private final Statistics mStatistics;
   protected final FileInStream mInputStream;
 
   private boolean mClosed = false;
->>>>>>>> origin/master:dora/core/client/hdfs/src/main/java/alluxio/hadoop/BaseHdfsFileInputStream.java
 
   /**
    * Constructs a new stream for reading a file from HDFS.
@@ -43,12 +53,8 @@ public class BaseHdfsFileInputStream extends InputStream implements Seekable, Po
    * @param uri the Alluxio file URI
    * @param stats filesystem statistics
    */
-<<<<<<<< HEAD:core/client/hdfs/src/main/java/alluxio/hadoop/HdfsFileInputStream.java
-  public HdfsFileInputStream(FileSystem fs, AlluxioURI uri, Statistics stats) throws IOException {
-    super(fs, uri, stats);
-========
   public BaseHdfsFileInputStream(FileSystem fs, AlluxioURI uri, Statistics stats)
-      throws IOException {
+          throws IOException {
     LOG.debug("HdfsFileInputStream({}, {})", uri, stats);
 
     mStatistics = stats;
@@ -60,7 +66,6 @@ public class BaseHdfsFileInputStream extends InputStream implements Seekable, Po
     } catch (AlluxioException e) {
       throw new IOException(e);
     }
->>>>>>>> origin/master:dora/core/client/hdfs/src/main/java/alluxio/hadoop/BaseHdfsFileInputStream.java
   }
 
   /**
@@ -69,10 +74,6 @@ public class BaseHdfsFileInputStream extends InputStream implements Seekable, Po
    * @param inputStream the input stream
    * @param stats filesystem statistics
    */
-<<<<<<<< HEAD:core/client/hdfs/src/main/java/alluxio/hadoop/HdfsFileInputStream.java
-  public HdfsFileInputStream(FileInStream inputStream, Statistics stats) {
-    super(inputStream, stats);
-========
   public BaseHdfsFileInputStream(FileInStream inputStream, Statistics stats) {
     mInputStream = inputStream;
     mStatistics = stats;
@@ -166,7 +167,7 @@ public class BaseHdfsFileInputStream extends InputStream implements Seekable, Po
     int totalBytesRead = 0;
     while (totalBytesRead < length) {
       int bytesRead =
-          read(position + totalBytesRead, buffer, offset + totalBytesRead, length - totalBytesRead);
+              read(position + totalBytesRead, buffer, offset + totalBytesRead, length - totalBytesRead);
       if (bytesRead == -1) {
         throw new EOFException();
       }
@@ -201,6 +202,5 @@ public class BaseHdfsFileInputStream extends InputStream implements Seekable, Po
       throw new IOException("Cannot skip bytes in a closed stream.");
     }
     return mInputStream.skip(n);
->>>>>>>> origin/master:dora/core/client/hdfs/src/main/java/alluxio/hadoop/BaseHdfsFileInputStream.java
   }
 }

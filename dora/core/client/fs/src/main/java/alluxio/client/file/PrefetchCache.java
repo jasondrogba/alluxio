@@ -1,4 +1,5 @@
 package alluxio.client.file;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.EvictingQueue;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -105,7 +106,9 @@ public class PrefetchCache implements AutoCloseable {
     int prefetchSize = Math.max(mPrefetchSize, minBytesToRead);
     // cap to remaining file length
     prefetchSize = (int) Math.min(mFileLength - pos, prefetchSize);
-
+    if (prefetchSize <= 0) {
+      return 0;
+    }
     if (mCache.capacity() < prefetchSize) {
       mCache.release();
       mCache = PooledDirectNioByteBuf.allocate(prefetchSize);
@@ -162,5 +165,11 @@ public class PrefetchCache implements AutoCloseable {
   public int getPrefetchSize() {
     return mPrefetchSize;
   }
+
+  @VisibleForTesting
+  public void setCache(ByteBuf cache) {
+    mCache = cache;
+  }
+
 }
 
